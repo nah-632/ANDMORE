@@ -1,0 +1,47 @@
+# Supabase CLI project config — AND MORE
+# Linked automatically when SUPABASE_ACCESS_TOKEN is available:
+#   supabase link --project-ref <ref>
+project_id = "andmore"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.pooler]
+enabled = true
+port = 54329
+pool_mode = "transaction"
+
+[studio]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "https://andmore.onrender.com"
+additional_redirect_urls = ["https://andmore.onrender.com/ar/auth/callback", "https://andmore.onrender.com/en/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_confirmations = true        # §13: email verification required
+enable_recoveries = true
+max_frequency = "1m"
+
+[auth.password]
+min_length = 10                    # matches lib/auth/validation.ts policy
+requirements = { lower_case = true, upper_case = true, digits = true, special_characters = false }
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"          # matches volunteer_documents CHECK (§12)
