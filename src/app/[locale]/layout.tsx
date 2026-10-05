@@ -32,9 +32,19 @@ export default async function LocaleLayout({
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }> | undefined;
 }>) {
-  const { locale } = await params;
+  // TEMPORARY DIAGNOSTIC (remove after root-cause found): log what params actually
+  // is during prerender. Evidence for "Cannot destructure 'locale'" bug.
+  let locale: string | undefined;
+  if (params === undefined) {
+    console.error('[prerender-probe] layout: params is UNDEFINED');
+    locale = 'ar';
+  } else {
+    const p = await params;
+    console.error('[prerender-probe] layout: params =', JSON.stringify(p));
+    locale = p?.locale ?? 'ar';
+  }
   if (!locales.includes(locale as Locale)) {
     notFound();
   }
