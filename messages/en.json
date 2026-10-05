@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "how": "How It Works",
+    "subjects": "Subjects",
+    "find": "Find a Volunteer",
+    "volunteer": "Become a Volunteer",
+    "impact": "Impact",
+    "safety": "Safety & Trust",
+    "contact": "Contact"
+  },
+  "home": {
+    "heroTitle": "The right tutor. A brighter future.",
+    "heroSub": "Free online educational sessions, delivered by verified qualified volunteers to primary, intermediate, and secondary students.",
+    "ctaFind": "Find Educational Support",
+    "ctaVolunteer": "Become a Volunteer",
+    "howLink": "How it works",
+    "trustTitle": "Trusted from the start",
+    "trustBody": "Every volunteer is reviewed and verified before appearing here. Guardians can see every session, and all communication stays inside the platform.",
+    "impactTitle": "Our impact so far",
+    "impactEmpty": "Numbers will appear as the platform grows. We never display invented figures — every number here comes from real sessions recorded in the database.",
+    "impactSessions": "educational sessions",
+    "impactHours": "documented volunteer hours",
+    "impactVolunteers": "verified volunteers",
+    "impactStudents": "students supported"
+  },
+  "footer": {
+    "tagline": "Knowledge becomes giving",
+    "rights": "AND MORE — a volunteer education platform"
+  },
+  "langSwitch": {
+    "label": "العربية"
+  }
+}

@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* §5B locked: per-locale font variables, set on <html> by the root layout. */
+:root {
+  --font-heading: var(--font-body-en);
+  --font-body: var(--font-body-en);
+  --heading-line: 1.35;
+  --body-line: 1.7;
+}
+
+html[lang='ar'] {
+  --font-heading: var(--font-heading-ar);
+  --font-body: var(--font-body-ar);
+  --heading-line: 1.4;
+  --body-line: 1.8;
+}
+
+body {
+  @apply bg-paper text-ink font-body;
+  line-height: var(--body-line);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  line-height: var(--heading-line);
+}
+
+/* §5B: custom focus ring, never the browser default outline. */
+*:focus-visible {
+  outline: 2px solid theme('colors.blue');
+  outline-offset: 2px;
+}
+
+/* Hairline divider (§5B tactile quality). */
+.hairline {
+  border-color: theme('colors.line');
+}

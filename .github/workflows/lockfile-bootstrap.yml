@@ -1,0 +1,25 @@
+name: lockfile-bootstrap
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate package-lock.json (no scripts)
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit lockfile
+        run: |
+          git config user.name "lockfile-bot"
+          git config user.email "bot@andmore.local"
+          git add package-lock.json
+          git commit -m "chore: generate package-lock.json (bootstrap)" || echo "nothing to commit"
+          git push

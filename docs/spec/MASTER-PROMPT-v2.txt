@@ -1,0 +1,559 @@
+# MASTER PROMPT v2 — AND MORE
+
+> Paste this entire document as the first message (or system prompt) to the AI tool or developer. Sections marked **[HARD RULE]** are non-negotiable. Sections marked **[DECISION]** list assumptions the owner must confirm.
+
+---
+
+## 0. OPERATING CONTRACT
+
+You are acting as a combined team:
+
+- **Lead Product Strategist** (scope, priorities, trade-offs)
+- **Principal Full-Stack Engineer** (Next.js, TypeScript, PostgreSQL, Supabase)
+- **Security & Privacy Engineer** (child-safety, PDPL-aligned data protection)
+- **Trust & Safety / Safeguarding Lead** (minor protection, abuse reporting)
+- **Senior UX/UI Designer** with deep bilingual Arabic (RTL) / English (LTR) experience
+- **EdTech & Volunteer-Program Architect**
+- **QA / SDET Lead** (you must prove it works, not claim it)
+
+**How you must work:**
+
+1. **Never claim something works unless you have shown evidence** (test output, migration applied, command run, screenshot description). "Should work" is not acceptable.
+2. **Work in phases** (Section 3). Complete one phase, show its acceptance evidence, then proceed. Do not dump an unreviewable monolith.
+3. **If something is ambiguous or impossible, say so explicitly** and list your assumption. Never silently invent facts, integrations, statistics, partners, certifications, legal text, or users.
+4. **If a requirement conflicts with another, flag the conflict, choose the safer option, and document it** in `docs/decisions/` as an ADR.
+5. **Safety beats features. Correctness beats speed. Honesty beats polish.**
+
+---
+
+## 1. MISSION & PRODUCT
+
+**AND MORE** is a bilingual (Arabic-first, English-complete) digital platform for **free, volunteer-delivered online educational sessions**. It connects school students (Primary, Intermediate/Preparatory, Secondary) with **verified** qualified volunteers, and measures the volunteers' contribution as documented hours and impact.
+
+Philosophy: *Knowledge becomes giving. Volunteers build the future. Students become tomorrow's leaders.*
+
+It must be a **real, production-grade system** (database, auth, server-side authorization, audit trail) — not a landing page, not a frontend-only prototype, not a generic tutoring marketplace. There are **no payments** in scope: services are free; do not build any monetization or payment processing.
+
+**Core loop:** Learn (need) → Connect (match) → Teach (session) → Grow (feedback) → Give Back (verified hours/impact).
+
+---
+
+## 2. NON-NEGOTIABLE PRINCIPLES [HARD RULES]
+
+1. **Student safety and privacy are first-class requirements.** Every design decision is evaluated against: *could this expose or endanger a minor?*
+2. **Authorization is enforced at the database and server level** (Postgres RLS + server-side checks). Frontend hiding is cosmetic only.
+3. **No fake data presented as real**: no invented statistics, testimonials, partners, certifications, volunteer profiles, or achievements. Development seed data must be clearly labeled and impossible to confuse with production data (e.g., `is_seed = true`, a visible dev banner, excluded from public impact numbers).
+4. **No fake integrations**: anything not actually implemented is either absent or shown as "Not configured / Coming later" in admin only — never as a working public feature.
+5. **"Verified Volunteer" appears only when verification is recorded in the database** and the volunteer is `approved` and `active`.
+6. **No placeholder text, lorem ipsum, dead buttons, or broken links** at delivery.
+7. **No secrets in code or repo.** Environment variables only; provide `.env.example`.
+8. **Legal and policy pages (Terms, Privacy, Child Safety, Volunteer Code of Conduct)** must be drafted as clearly marked templates requiring review by a qualified lawyer. Do not assert legal compliance you cannot verify.
+9. **Minimize data collection**, especially for minors. Collect only what a feature needs.
+
+---
+
+## 3. PHASED DELIVERY PROTOCOL
+
+At the start, output a **Phase 0 brief** (max 1 page): your assumptions, answers to Section 22 defaults, risks, and the chosen architecture. Then proceed. After each phase provide: (a) what was built, (b) file tree changes, (c) how to run/verify, (d) test results, (e) known limitations. Do not start the next phase until the current phase's **Exit Gate** is met.
+
+| Phase | Scope | Exit Gate |
+|---|---|---|
+| **P0 Foundation** | Repo, TypeScript strict, lint/format, CI, env handling, i18n routing (`/ar`, `/en`), design tokens, base layout, error boundaries, **tooling guards and a deployed walking skeleton (§3B)** | App builds in CI; `verify:light` passes locally; locale switch works with correct `dir`; **skeleton deployed to Render with `/api/health` green**; **`/styleguide` approved by the owner (§5B)** |
+| **P1 Data & Security** | Schema, migrations, constraints, indexes, RLS policies, seed (labeled), audit log triggers | RLS test suite passes (see §19); no table without RLS |
+| **P2 Auth & Roles** | Email/password, verification email, recovery, session mgmt, role model, guardian–student linking, admin protection | Role/permission matrix tests pass |
+| **P3 Volunteer Pipeline** | Application, documents, evaluation, admin review, approval states | State machine tests pass; unapproved volunteers invisible publicly |
+| **P4 Discovery & Matching** | Subjects, volunteer search, explainable matching | Match results include reasons; unit tests on scoring |
+| **P5 Sessions** | Request→completion lifecycle, availability, conflict prevention, provider abstraction, session workspace | No double booking under concurrency test |
+| **P6 Feedback, Hours, Points** | Ratings, quality flags, hour ledger, points rules | Ledger is append-only and reconciles |
+| **P7 Admin & Analytics** | Dashboard, management modules, reports/export | Every admin action audited |
+| **P8 Public Site, SEO, A11y, Perf** | All public pages, bilingual SEO, accessibility pass, performance pass | Lighthouse/axe targets met (§18) |
+| **P9 Hardening & Handover** | Security checklist, backups/restore drill doc, runbook, README, ADRs | Final checklist (§19) fully evidenced |
+
+---
+
+## 3B. TOOLING, ENVIRONMENT & DEPLOYMENT RULES (LESSONS FROM THE FIRST BUILD) [HARD RULES]
+
+The first build of AND MORE failed repeatedly at deploy time and during local verification. This is a rebuild from scratch. The rules below exist to make each of those failures impossible or caught **before** they reach Render. Each rule has an automated guard; a rule without a guard is not done.
+
+**Environment facts you must design for:**
+- **Hosting:** Render (web service) + Supabase. Code lives on GitHub.
+- **Local environment is constrained:** the owner works from a phone using iSH (Alpine Linux, musl, aarch64 emulation) where large `npm install` runs can **fail silently** and native binaries (for example Rolldown bindings used by Vitest) can be corrupt. **Do not assume a full local `node_modules`.** **GitHub Actions CI on a normal Linux runner is the source of truth** for install, typecheck, lint, tests and `next build`.
+
+**Pitfall → rule → guard:**
+
+| # | Failure seen in the first build | Rule | Automated guard |
+|---|---|---|---|
+| 1 | Wrong import path (`supabaseService` imported from the wrong module, imported twice) | One canonical module map: `lib/auth/server.ts` (session/role helpers), `lib/db/server.ts` (service-role client and its helper), `lib/db/client.ts` (browser client). Always import through the `@/` alias. No duplicate helpers. Document the map in `docs/architecture.md`. | `check-imports.mjs` (every relative/alias import resolves and every named import exists as an export); ESLint `import/no-unresolved`, `import/no-duplicates` |
+| 2 | Stray helper file importing a module that no longer existed (`lib-helpers.ts`) | When code is superseded, delete the old file in the same commit. No scratch, intermediate, or "temp" files in `src/`. | `knip` (or equivalent) in CI fails on unused files, exports, and dependencies |
+| 3 | `string \| undefined` not assignable to `string` in state-machine checks (`legal[app.status]?.includes(next)`) | One typed transition table per workflow: `Record<Status, readonly Status[]>` and one helper `canTransition(from, to)` that accepts `null`/`undefined` and returns `false` for them. Index maps only with values typed as the status union, never raw strings. Route handlers never inline transition logic. | Unit tests per workflow (applications, sessions, support-style queues); `tsc --noEmit` with `strict` and `noUncheckedIndexedAccess` |
+| 4 | camelCase vs snake_case mismatch (`volunteer_id` vs `volunteerId`) | **Database rows are snake_case; domain objects are camelCase; conversion happens in exactly one mapper layer** (`lib/**/mappers.ts`). Generate DB types with `supabase gen types typescript` (committed, regenerated on every migration). Domain functions and API routes consume only domain types. Never read a snake_case property from a domain object or the reverse. | Typecheck against generated types; CI step fails if generated types are stale (diff after regeneration) |
+| 5 | Next.js 15 breaking change: `params`/`searchParams` are Promises | Target **Next.js 15 and React 19**. In every layout, page, route handler, and metadata function: `params` and `searchParams` are `Promise`s and must be `await`ed; `cookies()` and `headers()` are async. Use shared types, e.g. `type LocaleParams = { params: Promise<{ locale: Locale }> }`. Layouts/pages that await are `async`. | `check-next-conventions.mjs` (flags synchronous access to `params`, `searchParams`, `cookies()`, `headers()`, and deprecated patterns); `next build` in CI |
+| 6 | `next/font` failed: Arabic subset requested for a font that has no Arabic glyphs (`Source_Sans_3`) | Verify every font's supported subsets **before** using it. Never request a subset a font does not provide. **Known-good from the first build:** `IBM_Plex_Sans_Arabic` (`subsets: ['arabic', 'latin']`) and `Source_Sans_3` (`subsets: ['latin']`). The rebuild's locked set (§5B) is those two plus `Amiri` (Arabic headings) and `Source_Serif_4` (English headings); confirm the subsets of the two new families before use. Any other family from §5B (for example Amiri, Noto Naskh Arabic, Fraunces, Newsreader) is allowed only after its subsets and weights are confirmed against the `next/font/google` type definitions. Keep all font config in one file (`lib/fonts.ts`). | `check-next-conventions.mjs` validates `lib/fonts.ts` against an allowlist of family → supported subsets; `next build` in CI |
+| 7 | `/api/health` depended on the database, so health checks failed before the DB existed | Two endpoints: **`/api/health`** (liveness: zero dependencies, returns `200 {"status":"ok"}` instantly, never touches DB, Supabase, or env secrets) and **`/api/ready`** (readiness: checks the DB with a short timeout, never used as Render's health-check path). Render's health-check path is `/api/health`. | Unit/integration test: `/api/health` returns 200 with all external env vars unset |
+| 8 | Failures discovered only after pushing to Render | **Nothing deploys unless CI is green.** CI runs on every push/PR: `npm ci` → `typecheck` → `lint` → `verify:light` → unit tests → `next build` → i18n parity → DB/RLS tests. Configure Render auto-deploy to **"After CI checks pass"**. Use the same Node version in CI and Render. | CI workflow in `.github/workflows/ci.yml`; Render setting documented in `docs/deploy.md` |
+| 9 | Silent `npm install` failure locally | Never trust an install that printed no error. Provide `scripts/check-install.mjs` (verifies `node_modules` exists and key packages resolve) and fail loudly. Local machine runs only the **light checks** (below); everything else runs in CI. | `npm run verify:light` |
+| 10 | Corrupt native test runner on musl/aarch64 (Rolldown/Vitest) | Write all domain logic (matching, state machines, hours/points ledger math, WhatsApp link builder, validators) as **pure TypeScript modules with no framework or native-binary imports**. Unit-test them with Node's built-in **`node:test`** so they run anywhere (use Node's native type stripping where available, otherwise a pure-JS/WASM runner such as `tsx`; avoid packages that ship platform-specific native binaries for the local path). **Vitest, Playwright, and pgTAP run in CI only.** | `npm run test:unit` (node:test) locally; full suite in CI |
+| 11 | Wrong enum value in a Render API call (`do_not` instead of `do_not_clear`) | Prefer **infrastructure as code**: a committed `render.yaml` blueprint (service type, build/start commands, health-check path, region, env var **keys** only) instead of ad-hoc API calls. If the API is scripted, read the current API reference for exact enum values (for example `clearCache` accepts `clear` or `do_not_clear`) and keep the calls in versioned scripts under `scripts/ops/`. | Script has a `--dry-run`; values validated against a typed enum |
+| 12 | Expired token (401), then a token with missing permissions (403) | See "Git and credentials" below. | `docs/dev-setup.md`; pre-work credential self-test |
+| 13 | Rejected push (fast-forward) after commits were made through the API while local work continued | One writer to `main` at a time. Work on short-lived branches and merge through pull requests; protect `main`. Never commit through the API while local work is in progress. Always `git fetch && git rebase origin/main` (or `git pull --rebase`) before pushing. | Branch protection rules documented in `docs/dev-setup.md` |
+| 14 | CI failed: `Dependencies lock file is not found` (`actions/setup-node` with `cache: npm`, no `package-lock.json` committed because local install is impossible on the phone) | **`package-lock.json` is always committed.** If it cannot be generated locally, generate it with a one-time bootstrap workflow (`workflow_dispatch`, `permissions: contents: write`) that runs `npm install --package-lock-only --ignore-scripts` on a Linux runner and commits the file, or with `npm install --package-lock-only` locally if it succeeds. CI uses `npm ci` only. Add an explicit first CI step that fails with a clear message when the lockfile is missing, before `setup-node`. Never remove `cache: npm` or switch to `npm install` just to get past the error. | `check-install.mjs` and a CI pre-step `test -f package-lock.json`; lockfile drift check (`npm ci` fails if `package.json` and the lockfile disagree) |
+
+**Local light checks (Node only, zero third-party dependencies; commit them in P0 and wire them into `npm run build` and `npm run verify:light`):**
+`check-syntax.mjs`, `check-imports.mjs`, `check-next-conventions.mjs`, `check-i18n-parity.mjs`, `check-design-smells.mjs`, `check-install.mjs`. Each exits non-zero with a clear message and file/line. They must run in seconds on a phone-class environment.
+
+**Zero-dependency means zero:** the light checks must run with **no `node_modules` at all** and must not import any third-party package (no `@babel/parser`, `acorn`, `esbuild`, `typescript`, etc.), only Node built-ins. Plain Node cannot fully parse TSX, so **TypeScript/TSX syntax and type correctness are verified by `tsc --noEmit` and `next build` in CI only**; locally, `check-syntax.mjs` is limited to what Node can verify itself (`node --check` for `.mjs`/`.js`, JSON validity, and simple structural checks). `check-install.mjs` is a **warning locally and an error in CI**. `verify:light` must pass on a machine without `node_modules`. Never move `typescript` or other build tools into `dependencies` to work around the local environment. CI and Render must install dev dependencies for the build (for example `npm ci --include=dev`, and do not set `NODE_ENV=production` before the install). Do not keep scripts from other ecosystems (for example `pytest`) in a Next.js project; `check.sh` is a CI script and is not run locally.
+
+**Git and credentials:**
+- Prefer an **SSH deploy key** or the GitHub CLI's credential flow. If a token is needed, use a **fine-grained personal access token scoped to the single repository** with an explicit, deliberately chosen expiry (calendar reminder before it expires) and only the permissions required: **Contents: Read and write** and **Metadata: Read** (add Pull requests / Actions only if used). A token missing "Contents: Read and write" produces 403 on push.
+- Never embed a token in a remote URL committed or logged; store it via a credential helper or environment variable. Never print tokens in logs, scripts, commits, or chat.
+- Before starting work each session, run a harmless self-test (`git ls-remote origin`, then a dry-run push) so expiry or missing scope is discovered immediately, not mid-task.
+- If a push is rejected, **diagnose first** (`git status`, `git fetch`, `git log --oneline --graph origin/main..HEAD`) instead of retrying blindly.
+
+**Deployment on Render:**
+- Commit `render.yaml`. Use `npm ci` for install, `next build` for build, `next start -H 0.0.0.0 -p $PORT` for start (or the standalone output equivalent). Pin `NODE_VERSION` to the same version as CI and `engines` in `package.json`.
+- Separate **build-time** from **runtime** environment variables. The build must never require runtime-only secrets. Validate env with Zod at boot and fail fast with a clear message listing missing keys (never values).
+- Choose and document the Render region (closest available to users, consistent with the data-hosting decision in §12/§22). Note cold-start behavior of the chosen plan in `docs/deploy.md`.
+- **Walking skeleton first (P0):** before building features, deploy a minimal app (locale routing, a page in each locale, `/api/health`) through the full CI → Render pipeline and confirm it is green. Only then continue. Every later phase deploys incrementally so errors surface early, in small diffs.
+
+**When a build or deploy fails (mandatory procedure):**
+1. Read the **first** error in the log, not the last. Reproduce it in CI or with the light checks.
+2. Fix the **root cause**; do not apply blind patches or retry loops.
+3. **Add a guard** (check script, lint rule, unit test, or CI step) that would have caught it, then record the incident in `docs/lessons.md` (symptom, root cause, fix, guard).
+4. Report it in the phase report under "Known gaps and incidents".
+
+---
+
+## 4. USERS, ROLES & PERMISSIONS
+
+**Roles:** `student`, `parent` (guardian), `volunteer`, `admin` (with sub-roles: `super_admin`, `reviewer`, `moderator`, `analyst`). A person may hold multiple roles only where explicitly allowed (e.g., parent + volunteer); never student + admin.
+
+**Minors model [DECISION default]:**
+- Students under 18 **cannot self-register as independent adults**. A **parent/guardian account is mandatory** and is linked to each minor profile. The guardian gives recorded consent (timestamped, versioned consent text) for platform use and for sessions.
+- Students aged 15+ may hold their own login **only if** linked to a guardian account that can view their activity, sessions, and feedback.
+- Younger students access sessions through a guardian-controlled flow.
+- **Volunteer minimum age: 18** (configurable in `platform_settings`).
+
+**Permission matrix:** Generate a complete role × resource × action matrix as `docs/permissions.md` and implement it as RLS policies + server guards. Every cell must have a test. Key invariants:
+
+- Students/parents see **only their own** and their linked children's data.
+- Volunteers see only sessions assigned to them and **limited, need-to-know student info** (first name, stage, subject, learning need) — never contact details, address, school, or full name for minors unless explicitly justified in an ADR.
+- Volunteer documents: readable **only** by admins with `reviewer`+ role, via short-lived signed URLs, every access audited.
+- Public (anonymous) access: only approved, active volunteers' **public profile fields**, subjects, stages, public content, and aggregate impact numbers.
+- Admin actions that change state require a reason where specified, and are written to `audit_logs`.
+
+---
+
+## 5. BRAND & VISUAL IDENTITY
+
+**Name:** `AND MORE` (public brand). Do not use any legacy project title publicly.
+
+**Meaning:** Education **and more**; volunteering **and more**; skills, opportunity, community impact **and more**. Narrative: not only education — more opportunity; not only volunteering — more impact; not only sessions — more confidence; not only knowledge — more possibilities.
+
+**Personality:** Trustworthy, human, premium, modern, hopeful, inclusive, professional, technology-enabled.
+**Avoid:** childish illustrations, stock-photo clichés, excess gradients, cheap school-template look, heavy animation, clutter.
+
+**Visual system:**
+- Palette tokens (define as CSS variables, with dark-mode-ready structure even if dark mode is later): deep academic navy (primary), modern blue (secondary), soft educational blue (accent), warm white / very light gray (background), dark graphite (text). Include semantic colors (success/warning/danger/info) tested for contrast.
+- Generous whitespace, subtle 1px borders, restrained shadows, purposeful transitions (respect `prefers-reduced-motion`). Do not round everything uniformly.
+- **Logo:** deliver an original SVG wordmark + symbol concept for "AND MORE" (e.g., an ampersand/plus-derived mark expressing connection and growth), with Arabic and English lockups, monochrome and favicon variants. Do not copy existing marks. If the owner supplies an official logo, use it instead, recreated faithfully as clean SVG.
+- **Hero visual:** see §5B. It must be an editorial, human-centered composition (typography-led, with real or hand-crafted imagery), **not** a glowing node-network, floating blobs, or abstract 3D shapes. Must be lightweight and not block LCP.
+- **Typography:** governed by §5B (humanist pairings; the generic defaults Cairo, Inter, Manrope, Poppins and Tajawal-as-everything are **not** to be used as the primary identity). Define a scale (Display, H1–H3, Body, Caption, Label) with Arabic-specific line-height and letter-spacing (never apply letter-spacing to Arabic). Self-host fonts (`next/font`), subset them, avoid layout shift.
+
+---
+
+## 5B. HUMAN, HANDCRAFTED DESIGN DIRECTIVE (ANTI-"AI LOOK") [HARD RULES]
+
+**Goal:** the platform must feel designed by a thoughtful person or small studio who cares about education and community — warm, specific, a little imperfect in the right places — and must **not** resemble a template or an AI-generated site. A visitor should feel *people* behind it, not a generator.
+
+**Typography (humanist, with character):**
+- **Arabic headings:** a warm, calligraphy-informed face with real stroke contrast, such as **Amiri** or **Noto Naskh Arabic** (bookish, human) — or a characterful Kufi-leaning face such as **Noto Kufi Arabic** / **El Messiri** for short display lines. **Arabic body/UI:** **IBM Plex Sans Arabic** or **Noto Sans Arabic** (calm, highly legible). Choose one heading family and one body family, no more.
+- **English headings:** a humanist or old-style serif with personality (e.g., **Fraunces**, **Newsreader**, **Source Serif 4**); **English body/UI:** a humanist sans (e.g., **Source Sans 3**, **IBM Plex Sans**, **Figtree**). Do **not** default to Inter, Manrope, Poppins, Roboto, or system fonts as the visible identity.
+- Pair Arabic and Latin so x-height, weight, and color match visually when mixed on one line. **Show the owner a specimen page (real Arabic + English text, all weights, mobile + desktop) and justify the pairing before using it**; swap if the pairing looks mechanical.
+- Use a restrained scale with real hierarchy: large expressive headings, generous line-height for Arabic (~1.7–1.9 body), comfortable measure (45–75 characters). Use weight and size contrast instead of effects. No gradient text, no text shadows, no all-caps Arabic/English shouting.
+
+**Color & surface (warm, not "SaaS blue"):**
+- Keep **deep navy** as the anchor, but ground it with **warm paper tones** (off-white/cream backgrounds, not cold gray) and **one warm accent** drawn from the region's materials and light (e.g., terracotta, sand, muted saffron, or deep olive) used sparingly for emphasis. If the owner supplies a logo or palette, derive the accent from it. Soft blue stays as a supporting tone. Document tokens and contrast. **[DECISION]** owner may veto the warm accent; if so, keep warm neutrals.
+- **Banned looks:** purple/indigo-to-blue gradients, glassmorphism/frosted cards, neon glows, mesh-gradient blobs, floating 3D shapes, "sparkle" icons, animated gradient borders, dark-mode-by-default tech aesthetic.
+- Add subtle tactile quality: faint paper grain or fine line texture on large surfaces, hairline rules, thoughtful dividers, real shadows only where elevation is meaningful.
+
+**Layout (editorial, not template):**
+- **No** symmetrical "centered headline + two buttons + three identical feature cards with circle icons" structure. **No** uniform grids of identical rounded cards repeated down the page, no stacked "logo wall", no stat-counter band as the default.
+- Compose pages like an editorial piece: asymmetric hero, varied section rhythms, full-bleed moments, large pull-quotes, numbered steps with strong typographic treatment, side-by-side narrative blocks, intentional whitespace. Vary spacing and column structure between sections; respect a grid but not monotony.
+- Icons: a single consistent set, used sparingly, never as decoration in colored circles on every item. Prefer typography, numerals, and illustration to icons.
+- Components should look considered: distinct button style, form fields with character, custom focus rings, tasteful empty-state illustrations (not generic).
+
+**Imagery & identity (handcrafted):**
+- **Logo/wordmark:** an original, hand-drawn or calligraphy-informed mark for "AND MORE" (consider an Arabic-lettering gesture for the "وأكثر"/"And More" lockup and an ampersand/plus motif drawn with a human hand), delivered as clean SVG. An owner-supplied official logo, if provided, takes precedence.
+- **Illustration:** a limited, cohesive set of **hand-drawn style** line/shape illustrations (imperfect strokes, human proportions, no glossy vector-stock look, no generic "people with giant phones" or "lightbulb and gears"). Commission-quality direction: describe the illustration style guide (stroke weight, palette, subject matter rooted in Gulf/Saudi everyday learning life — a kitchen table, a laptop, a notebook, tea) and produce original SVGs that follow it. Where you cannot produce quality art, say so and leave clearly designed typographic fallbacks instead of weak art.
+- **Photography:** no stock photos and no AI-generated people. Use only real photography with documented consent. **Never show identifiable children** in public marketing without verified guardian consent. Until real photos exist, use illustration/typography, not fake faces.
+- **Cultural touch (restrained):** a subtle geometric pattern or arabesque-inspired texture used as an accent (headers, dividers, empty states), never as wallpaper, never kitsch.
+- **Hero concept (replaces the node-network idea):** an editorial hero built from large bilingual typography and one hand-crafted illustration or real photograph, expressing "a person sharing knowledge with another person" — warm, quiet, confident. The "AND MORE" idea appears typographically (the ampersand/plus as a recurring graphic motif that gains meaning through the page).
+
+**Motion (human, minimal):** a few meaningful transitions (page-load reveal, hover feedback, step progress). No parallax gimmicks, no endless floating animations, no typing effects, no particle backgrounds. Respect `prefers-reduced-motion`.
+
+**Copy voice (human, specific, local):**
+- Write like a thoughtful person from the community, in plain words, with concrete details (what happens in a session, what a volunteer actually does, what a parent can expect). First-person plural ("we") where appropriate; speak to the reader directly.
+- **Banned AI-ish patterns:** "Unlock your potential", "Empower", "Seamless", "Elevate", "Cutting-edge", "Leverage", "Journey", "In today's fast-paced world", "Not just X — but Y" repeated as a formula, rule-of-three slogans on every section, excessive em-dashes, exclamation spam, emoji in headings, and Arabic calques of those phrases ("أطلق العنان", "نقلة نوعية", "رحلتك نحو" etc.). The brand line "Not only X — more Y" may appear **at most once or twice** in intentional brand moments, not as a template.
+- Vary sentence length. Prefer short, warm, concrete sentences. Arabic copy must read as originally written in Arabic (natural Gulf-friendly MSA), reviewed by a native editor mindset, not translated from English.
+
+**Design process requirements (to prevent template output):**
+1. Before building, produce a short **design rationale** (≤1 page): mood, 3 references described in words (e.g., independent bookshops, community newspapers, museum education programs — not other EdTech sites), the typographic pairing, the palette, and what you are deliberately avoiding.
+2. Build the design system (tokens, type scale, components) **before** page assembly.
+3. Run a **"template smell" audit** on every page: list any element that looks generic (identical card grids, centered-hero formula, stock-like imagery, gradient decoration, filler icons) and fix it. Include the audit and the fixes in the phase report.
+4. Test the design with real Arabic content in RTL first, then English — not lorem ipsum, not English-first mirrored.
+
+**LOCKED DESIGN DECISIONS (do not improvise; deviations need the owner's written approval):**
+
+*Typography (four families, no more):*
+- Arabic headings: **Amiri** (calligraphic Naskh), used only at 24px and above. Arabic body and all UI text: **IBM Plex Sans Arabic**.
+- English headings: **Source Serif 4**. English body and all UI text: **Source Sans 3** (same superfamily style as the serif, so the pairing feels deliberate).
+- Confirm each family's supported subsets before use (§3B rule 6). Expose them as `--font-heading` and `--font-body` per locale. Arabic: no letter-spacing, body line-height about 1.8, headings about 1.4. Never use Inter, Poppins, Roboto, Manrope, Cairo or system fonts as visible text.
+
+*Color:* named tokens only: `ink` (graphite text), `navy`, `blue`, `gold` (the warm accent from the owner's logo), `teal` (minor), `paper` (warm off-white background), `line` (hairline border). Sample exact values from the owner's logo, never guess. Solid colors only. Alternate `paper` and `navy` full-width bands to create rhythm.
+
+*Shape and depth:* card and input radius **8px at most**; fully round only for avatars and small tags. 1px hairline borders. **Shadows only on floating layers** (menus, dialogs), none on cards. **No gradients, no blur/glass effects, no glow, no decorative animation.**
+
+*Layout:* text-first, start-aligned hero in an asymmetric split (about 7/5), never a centered headline with two buttons. Steps are a vertical numbered sequence with large numerals, not a row of icon cards. At most **one section per page** may use a grid of equal cards, and never three identical cards each with an icon. Use real content blocks, pull quotes, and varied column structures.
+
+*Icons:* one stroke icon set (Lucide), used sparingly, never inside colored circles or squares.
+
+**Automated design guard:** add `check-design-smells.mjs` (Node built-ins only, part of `verify:light` and CI). It fails on: Tailwind classes `bg-gradient-*`, `backdrop-blur*`, `blur-2xl`/`blur-3xl`, `shadow-xl`/`shadow-2xl`, `rounded-2xl`/`rounded-3xl`, `animate-pulse|bounce|ping` used decoratively, `text-transparent bg-clip-text`; emoji inside headings; and the banned copy phrases of §5B in `messages/*.json` and content files (English and Arabic lists kept in one file `design-guard.config.json`). A deliberate exception needs an inline `design-ok: reason` comment. Owner-supplied wording is listed in an allowlist file, not silently ignored.
+
+**Owner review gate:** in P0 build a `/styleguide` page (`noindex`, deployed to Render) showing, in Arabic RTL and English LTR, the type scale with real text, color tokens, buttons, form fields, a card, a step list, and an empty state. **Stop and wait for the owner to approve it on a phone before building any public page.** Record the approval in `docs/decisions/`.
+
+---
+
+## 6. LANGUAGE, RTL & INTERNATIONALIZATION
+
+- Arabic is the **default locale**; English is complete. Locale-prefixed routes (`/ar/...`, `/en/...`), `hreflang`, and persisted preference.
+- `<html lang dir>` set per locale. Use **CSS logical properties** (`margin-inline-start`, `ps-*`, `text-start`) everywhere; no hard-coded left/right. Mirror directional icons (arrows, chevrons); do **not** mirror logos, media controls, or numerals where inappropriate.
+- Message catalogs (e.g., `next-intl`) with **ICU pluralization** (Arabic has six plural forms — handle them correctly). No string concatenation for sentences.
+- **All** user-facing text is translated: nav, forms, validation, errors, empty states, emails/notifications, dashboards, legal pages, SEO metadata, ARIA labels.
+- Database content that is bilingual (subjects, stages, announcements) uses a structured `name_ar` / `name_en` (or JSONB translations) design — never machine-translate user-generated content silently.
+- Formatting via `Intl`: dates, numbers, durations. **[DECISION default]** Gregorian dates with optional Hijri display; Western digits (0–9) by default with user preference for Arabic-Indic; week starts Sunday; default timezone `Asia/Riyadh`, with per-user timezone stored and all timestamps stored UTC.
+- Arabic copy: natural, professional, Gulf-friendly Modern Standard Arabic; written by an Arabic copywriter mindset, not literal translation. English copy: plain, human, no hype words ("revolutionary", "game-changing", "next-generation" are banned).
+- Mixed-direction safety: handle embedded English names/emails/numbers in Arabic text using `<bdi>`/`dir="auto"`.
+- CI check: fail the build if any key exists in one locale but not the other.
+
+---
+
+## 7. VOLUNTEER LIFECYCLE
+
+**Application status (state machine, enforced in DB and server):**
+`draft → submitted → under_review → (interview_scheduled) → approved | rejected | needs_more_info`
+Post-approval account states: `active | suspended | deactivated`. Re-application rules after rejection are configurable.
+
+**Registration collects:** full name, profile photo (optional until approval), email, phone, education background, qualification, institution, specialization, subjects, stages, teaching experience, skills, preferred teaching methods, languages, availability, short bio, supporting documents (as required per rules), acceptance of the Code of Conduct.
+
+**Evaluation (admin):** application review, qualification verification, subject/specialization assessment (a structured test: admin-managed question bank or external-score entry — define an extensible `assessments` design), short interview record, scored rubric, internal notes (never visible to the volunteer), decision, rejection reason (templated, bilingual), verification timestamp and verifier.
+
+**[DECISION default]** Because volunteers interact with minors, require **Code of Conduct acceptance** before approval. An admin-recorded reference/background-check status is available as an **optional, configurable** step (off by default); the platform only records the outcome.
+
+**Public visibility** requires: `approved` AND `active` AND profile completeness AND Code of Conduct accepted. Suspension immediately removes visibility and cancels/reassigns future sessions with notifications.
+
+**Classification:** by educational stage (Primary / Intermediate-Preparatory / Secondary), subject (admin-managed list), specialization (admin-managed, hierarchical-capable), teaching style (Explanation, Revision, Exam prep, Homework support, Skills development, Concept clarification — admin-extensible). Provide admin UI to manage taxonomies without code changes.
+
+---
+
+## 8. STUDENT/PARENT EXPERIENCE & MATCHING
+
+**Session request form:** stage, subject, current level, learning need, preferred time slots, format (individual / small group if enabled), notes (length-limited, scanned by moderation rules; instruct users not to share personal contact details).
+
+**Matching engine (deterministic, explainable, testable):**
+- Hard filters first: volunteer approved+active, subject, stage, language if specified, availability overlap, volunteer capacity limits (max active students/week).
+- Weighted scoring (weights stored in `platform_settings`, versioned): specialization fit, teaching-method fit, availability fit, recent activity/reliability, feedback score (with minimum-sample smoothing to avoid unfair penalties for new volunteers), load balancing.
+- **Every recommendation returns human-readable reasons in the user's language** ("Teaches your stage", "Available at your preferred time", "Matches your subject") and never exposes internal numeric scores to end users.
+- Fairness: new volunteers get exposure (cold-start boost, configurable). No hidden demographic features. Document the algorithm in `docs/matching.md`.
+- Manual override: admin can assign/reassign with a logged reason. Allow student/parent to pick from recommended volunteers or request admin-assisted matching.
+- Optional AI assistance (e.g., summarizing a learning need or suggesting subject tags) is allowed only if: off by default, no minors' personal data sent to third parties without explicit guardian consent and a documented data-processing basis, outputs are suggestions never decisions, and a non-AI fallback exists. Never present an unexplained AI decision.
+
+---
+
+## 9. SESSIONS
+
+**Lifecycle:** `requested → under_review → matched → pending_volunteer_confirmation → confirmed → in_progress → completed → evaluated`, plus `cancelled_by_student | cancelled_by_volunteer | cancelled_by_admin | no_show_student | no_show_volunteer | expired | disputed`. Define allowed transitions in a single transition table used by both DB triggers/functions and application code.
+
+**Each session stores:** unique ID, student, guardian, volunteer, subject, stage, scheduled start/end (UTC), duration (planned vs actual), status, objectives, notes, attendance (join/leave timestamps per participant), provider reference, feedback links, quality flags.
+
+**Scheduling integrity [HARD RULE]:**
+- Prevent double-booking with a **Postgres exclusion constraint** (`tstzrange` + `btree_gist`) per volunteer and per student, plus transactional booking functions. Include a concurrency test.
+- Timezone-correct availability (recurring weekly windows + exceptions/blackouts).
+- Rules (configurable): minimum notice for cancellation, reschedule limits, reminder schedule, no-show handling, auto-expiry of unanswered requests.
+
+**Video provider abstraction:** define a `VideoProvider` interface (`createMeeting`, `cancelMeeting`, `getJoinInfo`, `getAttendance?`, `healthCheck`). **Ship MVP with one honestly-implemented adapter** (e.g., "external meeting link" provided by the volunteer/admin, or one real provider with working credentials). Zoom / Google Meet / Microsoft Teams adapters are architecture-ready stubs hidden from users until implemented and tested. Do not display unimplemented providers as available.
+
+**Child safety in sessions [HARD RULE, kept simple]:**
+- Communication stays inside the platform. Show a clear notice not to share phone numbers or personal accounts (a warning only; no automated blocking).
+- For minors, the guardian can see the join link and the session record.
+- Recording is **off by default**; never record silently.
+- A "Report a problem" button is always available and creates an entry in the admin queue.
+
+**Learning workspace:** objectives, shared notes, whiteboard integration point (provider-agnostic embed or adapter; do not fake it), homework (assign/submit simple items with attachments), attachments (secure upload), post-session learning notes, follow-up recommendations. Simple, focused UI.
+
+---
+
+## 10. FEEDBACK, QUALITY & SAFEGUARDING OPERATIONS
+
+- After completion: student/parent rating (overall, clarity, commitment, usefulness, optional comment); volunteer session note and feedback. Comments pass moderation rules before public display; **public volunteer profiles show aggregated ratings and only moderated, opt-in excerpts**.
+- Admin quality control: low-rating alerts, repeated complaints, attendance issues, inactivity, completion rate, engagement; configurable thresholds; alert queue with assign/resolve and notes.
+- **Reporting:** a simple report form (students, parents, volunteers) with category and severity, an admin queue with notes and status, and an immediate admin notification for high severity. Keep a short `docs/safeguarding.md` with the escalation steps and a place for the owner to add local reporting obligations (do not invent them).
+- Suspension can be triggered immediately by moderators pending investigation; all steps audited.
+
+---
+
+## 11. HOURS, POINTS & IMPACT
+
+- **Hour ledger (append-only):** hours derive from completed sessions using actual attendance (rules configurable, e.g., minimum attendance threshold). Corrections are new compensating entries with reason + actor; never edit/delete history.
+- **Metrics:** total/completed sessions, hours, subjects taught, distinct students supported, feedback score, contribution history timeline.
+- **Points system (rules-engine design):** admin-configured rules (completed session, consistency streak, quality bonus, training completion) stored as versioned rules; points ledger append-only with rule reference. **Do not invent rewards, certificates, or incentives** — only admin-configured, clearly labeled.
+- **Volunteer-facing "hours statement"**: exportable (PDF) record of verified hours generated from the ledger, with a unique verification reference. Mark clearly that it is a platform record; do not claim official accreditation unless an owner-supplied partner agreement exists.
+- **Public Impact page:** aggregated, database-driven numbers only; suppress small counts that could identify individuals; show "Data will appear as the platform grows" empty states rather than fabricated numbers.
+
+---
+
+## 12. DATABASE DESIGN [HARD RULES]
+
+PostgreSQL via Supabase. Deliver versioned SQL migrations (never manual dashboard edits), ERD (Mermaid) in `docs/erd.md`, and data dictionary.
+
+**Core tables (extend as needed):** `profiles` (linked to `auth.users`), `user_roles`, `guardian_links`, `consents`, `student_profiles`, `parent_profiles`, `volunteer_profiles`, `volunteer_applications`, `volunteer_documents`, `volunteer_evaluations`, `assessments`, `safeguarding_checks`, `subjects`, `educational_stages`, `specializations`, `teaching_styles`, `volunteer_subjects`, `volunteer_stages`, `availability_rules`, `availability_exceptions`, `session_requests`, `sessions`, `session_participants`, `session_events`, `session_materials`, `homework_items`, `session_feedback`, `volunteer_hours_ledger`, `volunteer_points_ledger`, `points_rules`, `notifications`, `notification_preferences`, `notification_deliveries`, `reports` (safeguarding/abuse/content), `quality_alerts`, `audit_logs`, `platform_settings`, `content_pages` (legal/static, versioned, bilingual)
+
+**Requirements for every table:** UUID PKs, `created_at`/`updated_at` (UTC, trigger-maintained), explicit FKs with deliberate `ON DELETE` behavior, `CHECK` constraints for statuses (enums), `NOT NULL` where true, unique constraints to prevent duplicates (e.g., one active application per user, one availability overlap per volunteer), indexes for every FK and common filter/sort, soft-delete where history matters, **RLS enabled with explicit policies**, and comments.
+
+**Data protection (baseline):** collect only what each feature needs. **Do not collect national ID numbers**; volunteer documents are uploaded to a private bucket and viewed only by authorized admins. Support account deletion/export on request. Follow Saudi PDPL principles at a basic level (minimization, consent) and note that final compliance requires legal review; document the data-hosting region as a decision.
+
+**Audit logs:** append-only log of admin and sensitive actions: approvals/rejections, document access, role changes, point/hour adjustments, moderation, exports, settings changes (actor, action, entity, timestamp).
+
+---
+
+## 13. SECURITY (PROPORTIONATE BASELINE) [HARD RULES]
+
+Protect what matters, minors' data, volunteer documents, and access control, without over-engineering the MVP. Build exactly this baseline:
+
+- **Auth:** Supabase Auth with email/password, email verification, password recovery, and session management. Admin MFA is recommended and optional.
+- **Authorization:** enforced by RLS and on the server for every route and action. The service-role key is used on the server only and never reaches the client.
+- **Input safety:** validate every input on the server with Zod; no raw SQL string building; sanitize any rich text; check ownership on resources accessed by ID.
+- **Basic abuse control:** simple rate limits on login, forms, uploads and reports; Turnstile or similar on public forms if spam appears.
+- **File uploads:** private buckets, allowed types and size limits, signed expiring URLs, strip location data from images.
+- **Transport:** HTTPS, secure cookies, and sensible default security headers.
+- **Secrets:** env validation at boot, no secrets in the repo, dependency audit in CI.
+- **Errors and logs:** no PII in logs; friendly translated error messages, never stack traces.
+- **Backups:** use Supabase backups and write a short restore note in the README.
+
+**Later hardening (post-launch; do NOT build in the MVP unless the owner asks):** mandatory admin MFA, nonce-based CSP, malware scanning of uploads, CAPTCHA everywhere, field-level encryption, formal data-retention schedules, incident/breach runbooks, penetration testing, observer mode for sessions, automated contact-pattern detection.
+
+---
+
+## 14. NOTIFICATIONS
+
+Events: registration received/verified; volunteer application status changes; session request received; match proposed; session confirmed/rescheduled/cancelled; reminders (e.g., 24h and 1h, configurable); session completed; feedback request; safeguarding alert (admins); administrative announcements; quality alerts.
+
+Architecture: **outbox pattern** (`notifications` + `notification_deliveries`) → channel adapters (`in_app` and `email` implemented; `SMS` and `push` as defined interfaces, not enabled). Per-user preferences (cannot opt out of safety-critical notices), localized templates (ar/en), retries with backoff, idempotency keys, delivery status tracking, quiet hours. Email templates must be RTL-correct and tested.
+
+---
+
+## 14B. WHATSAPP HANDOFF (BOOKING & VOLUNTEER APPLICATION) [HARD RULES]
+
+**Requirement:** After a user submits a **session request (booking)** or a **volunteer application**, the platform redirects/offers a one-tap handoff to WhatsApp with a **ready-made, prefilled message** addressed to the platform's official number.
+
+**Official number:** `00966508342500` → international format `966508342500`. Store it in `platform_settings` (key `whatsapp_number`, editable by `super_admin`, validated as E.164 digits) and expose it via a single helper. **Never hard-code the number in components or message catalogs.**
+
+**Link format:** `https://wa.me/966508342500?text=<encodeURIComponent(message)>` (digits only, no `+`, no leading zeros). Build links server-side or in one shared utility; unit-test the encoding for Arabic text, line breaks (`%0A`), emojis, and RTL/LTR mixed content.
+
+**Flow (order matters):**
+1. The request/application is **validated and saved to the database first** and receives a human-readable **reference code** (e.g., `AM-S-2026-000123` for sessions, `AM-V-2026-000045` for volunteers). The database record is the **source of truth**; WhatsApp is only a convenience channel.
+2. The success screen shows the reference code, a clear explanation ("Send this message on WhatsApp so our team can follow up"), and a primary button **"Continue on WhatsApp / تابع عبر واتساب"**. Optionally auto-open after a short, cancelable countdown; never trap the user in a redirect.
+3. Provide fallbacks: **copy message** button, visible number, and a QR code on desktop. If WhatsApp is unavailable, the user's request is still valid and tracked in the dashboard.
+4. Do not mark anything as "confirmed" because the user opened WhatsApp. Status changes only through the admin/session workflow. Tell the user plainly: *"Your request is received. A team member will confirm it."*
+5. Log `whatsapp_handoff_clicked` (reference code, type, locale, timestamp — no message body) for analytics and abuse detection.
+
+**Message templates:** stored as versioned, localized templates (`ar` / `en`), selected by the user's current locale, editable by admins, with placeholders. Keep them short, polite, and structured. Defaults (adjust wording, keep the placeholders):
+
+*Session booking — Arabic*
+```
+السلام عليكم، أرغب في حجز جلسة تعليمية عبر منصة AND MORE.
+رقم الطلب: {reference}
+المرحلة: {stage}
+المادة: {subject}
+الوقت المفضل: {preferred_time}
+الاسم: {first_name}
+أرجو تأكيد الحجز. شكراً لكم.
+```
+*Session booking — English*
+```
+Hello, I would like to book an educational session on AND MORE.
+Request ID: {reference}
+Stage: {stage}
+Subject: {subject}
+Preferred time: {preferred_time}
+Name: {first_name}
+Please confirm my booking. Thank you.
+```
+*Volunteer application — Arabic*
+```
+السلام عليكم، أرغب في التطوع عبر منصة AND MORE.
+رقم الطلب: {reference}
+الاسم: {full_name}
+التخصص: {specialization}
+المواد: {subjects}
+المراحل: {stages}
+أرجو مراجعة طلبي. شكراً لكم.
+```
+*Volunteer application — English*
+```
+Hello, I would like to volunteer with AND MORE.
+Application ID: {reference}
+Name: {full_name}
+Specialization: {specialization}
+Subjects: {subjects}
+Stages: {stages}
+Please review my application. Thank you.
+```
+
+**Privacy & safeguarding constraints (override convenience):**
+- **Minimum data in the message.** For student bookings include only: reference code, stage, subject, preferred time, and **first name of the guardian or student** — never the student's full name, school, address, national ID, phone, email, or learning-difficulty details. Volunteer messages may include name and professional fields only; **never attach documents or IDs via the prefilled text**, and tell volunteers to upload documents only inside the platform.
+- Users must be told, before the handoff, that WhatsApp is a third-party service and their number becomes visible to the team (short localized notice, linked to the Privacy Policy).
+- **This channel is for communication with the AND MORE team only.** It must **not** be used to exchange contact details between volunteers and students; the "no off-platform contact" rule in §9 still applies. Keep a short staff note (`docs/whatsapp-protocol.md`) on who monitors the number and on never sharing student data in groups.
+- Fix the message at generation time from database values; sanitize and length-limit every interpolated field (WhatsApp URLs have practical length limits; truncate safely and keep the reference code last-resort intact) and strip control characters. Never include free-text notes entered by users.
+- Scope: this is a **plain handoff link** (`https://wa.me/966508342500?text=...`) to the official number. **No WhatsApp Business API or Business Platform integration is built or needed.** Do not build or claim automated WhatsApp notifications, delivery tracking, or two-way sync. System notifications use in-app and email only.
+
+**Testing:** unit tests for link/template generation in both locales; E2E test that after booking and after volunteer application the correct localized link (with the saved reference code) is shown; test that no sensitive fields appear in the generated text; test copy/QR fallbacks and that the flow works with WhatsApp unavailable.
+
+---
+
+## 15. ADMIN SYSTEM
+
+**Overview dashboard:** total students, active volunteers, pending applications, sessions (by status), completed sessions, hours, distinct students supported, average feedback, recent registrations, recent sessions, quality alerts, open safeguarding cases.
+
+**Management modules:** users (students, parents, volunteers, admins) · volunteer applications (review, document verification via secure viewer, interview records, approve/reject/suspend/reactivate, internal notes) · taxonomies (subjects, stages, specializations, teaching styles: create/edit/disable, never hard-delete in-use items) · sessions (view, change status with reason, cancel, investigate with event timeline) · feedback moderation (review, flag, hide) · points rules and manual adjustments with history · notifications/announcements · platform settings · content pages · reports & exports (CSV/XLSX; exports are audited, access-controlled, and exclude unnecessary PII) · audit log viewer · safeguarding case management.
+
+**Analytics:** volunteer registrations, approval rate and time-to-approve, session volume, completion/no-show rates, hours, student participation and retention, subject and stage demand vs. volunteer supply (gap analysis), feedback trends. Provide date-range filters, accessible charts with text alternatives, and scheduled periodic report generation. Aggregations done in SQL (views/materialized views), not in the client.
+
+---
+
+## 16. PUBLIC WEBSITE
+
+All pages bilingual, responsive, accessible, SEO-complete, no fake content.
+
+1. **Home** — hero "AND MORE" communicating education + volunteering + opportunity + impact; primary CTAs: *Find Educational Support*, *Become a Volunteer*; secondary: *How It Works*; trust strip (verification & safety summary); live (database-driven) impact snapshot with honest empty states.
+2. **About** — what it is, why it exists, the educational gap (framed from the initiative's stated rationale: students who may lack access to extra academic support due to financial limits or limited teacher availability), volunteer contribution, community impact, long-term vision.
+3. **How It Works** — visual 5 steps: 01 Volunteer registration → 02 Evaluation & verification → 03 Volunteer classification → 04 Student–volunteer matching → 05 Session, evaluation & impact tracking.
+4. **Subjects** — searchable, elegant directory from the database.
+5. **Find a Volunteer** — filters: subject, stage, specialization, availability, teaching method, language; only approved+active volunteers; accessible filter UI (mobile bottom sheet), URL-synced state, pagination, meaningful empty states.
+6. **Volunteer Profile** — photo, name (display name policy: first name + initial for minors' protection if configured), Verified badge (only if truly verified), specialization, subjects, stages, experience, approach, languages, availability summary, sessions completed, hours, aggregated feedback. No sensitive data.
+7. **Become a Volunteer** — why volunteer, who can, how verification works, how sessions work, how hours are documented, how impact is measured; CTA *Apply as a Volunteer*.
+8. **Impact** — storytelling + dashboard: students supported, sessions, hours, active volunteers, subjects supported (real data only; small-number suppression).
+9. **Safety & Trust** — plain-language explanation of verification, safeguarding, guardian role, reporting.
+10. **FAQ, Contact, Terms, Privacy, Child Safety Policy, Volunteer Code of Conduct, Accessibility statement** (templates flagged for legal review).
+11. **Authenticated areas:** student/parent dashboard, request flow, session workspace, volunteer dashboard (application status, availability manager, session requests, hours & points, profile editor), admin console.
+
+**Navigation:** every nav item and CTA must resolve to a working route; include a 404 and 500 experience in both languages. Mobile navigation is purpose-built (bottom bar or drawer for authenticated users), not a shrunken desktop menu.
+
+---
+
+## 17. DESIGN, UX & CONTENT STANDARDS
+
+- Component library: build on accessible primitives (e.g., Radix/shadcn-style), Tailwind with design tokens, Storybook-style documentation page or MDX showing each component in both directions and all states.
+- **Every screen has designed states:** loading (skeletons), empty (with next actions), error (recoverable), success, disabled, offline. Required copy examples: "No volunteers match your current filters." / "No sessions scheduled yet." / "Your volunteer application is under review." / "No feedback has been submitted yet." — each with a useful action.
+- **Error handling taxonomy:** authentication error, network failure, session/booking conflict, validation error, unauthorized, expired session, upload failure, rate-limited, server error — each with friendly translated copy and a recovery path.
+- Forms: inline validation, preserved input on error, autosave for long volunteer applications, clear progress, accessible error summaries.
+- Microcopy principle (see §5B for the full voice rules): human, calm, specific. "Education without barriers. Knowledge through giving. People helping people move forward."
+- Motion: subtle, purposeful, reduced-motion respected.
+
+---
+
+## 18. ACCESSIBILITY, SEO, PERFORMANCE — MEASURABLE TARGETS
+
+- **Accessibility:** WCAG 2.2 AA. Semantic HTML, landmarks, skip link, full keyboard operability, visible focus, contrast ≥ 4.5:1 (3:1 large text/UI), accessible names/labels, live regions for async updates, accessible date/time pickers, screen-reader tested flows in **both** Arabic and English, RTL focus order verified, `axe` automated checks in CI with zero critical/serious violations.
+- **SEO:** per-locale metadata, canonical + `hreflang` (ar/en/x-default), Open Graph/Twitter cards (localized images), JSON-LD (`Organization`, `WebSite`, `BreadcrumbList`, `FAQPage`, `Course`/`EducationalOrganization` only where truthful), dynamic sitemap with alternates, `robots.txt` (block private areas), semantic localized URLs, no indexing of private/authenticated or low-value filtered pages (use `noindex` where needed). **Never publish individual minors' data; volunteer profiles indexable only with volunteer's consent setting.**
+- **Performance (mobile, p75):** LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1; Lighthouse Performance ≥ 90 and Accessibility/SEO/Best Practices ≥ 95 on key public pages. Use server components by default, minimal client JS, `next/image`, font subsetting, route-level code splitting, caching strategy (ISR/edge caching for public data, no caching of private data), efficient queries (no N+1; verified with `EXPLAIN` on key queries), pagination everywhere, bundle-size budget in CI.
+- **Responsive:** verified on 360px, 390px, 768px, 1024px, 1440px, 1920px+; touch targets ≥ 44px; safe-area aware; no horizontal scrolling.
+
+---
+
+## 19. TESTING, VERIFICATION & DEFINITION OF DONE
+
+**Test layers (all automated, run in CI):**
+- Unit tests: matching scoring, state-machine transitions, hour/point calculations, validators, i18n key parity.
+- **Database/RLS tests** (e.g., pgTAP or equivalent): for each role, prove allowed and denied access on every table; anonymous access limited to public fields; unapproved volunteers invisible; documents inaccessible to non-admins; ledger tables reject UPDATE/DELETE.
+- Integration tests: auth flows, volunteer approval pipeline, request→match→session→feedback→hours, notification outbox.
+- **Concurrency test:** simultaneous booking attempts on the same slot → exactly one succeeds.
+- E2E (Playwright): critical journeys in **ar (RTL) and en (LTR)**, desktop + mobile viewports, including language switch preserving the current page.
+- Security tests: ownership (IDOR) checks on core resources, basic rate-limit check, upload type/size checks, dependency audit.
+- Accessibility (axe) and performance (Lighthouse CI) budgets.
+
+**Definition of Done — deliver a checklist file `docs/verification-report.md` where each item below has evidence (test name/output or reproducible steps). Unchecked or unevidenced items must be listed honestly as gaps:**
+
+- [ ] Every page and nav item works; no dead buttons or placeholders
+- [ ] Arabic and English complete; RTL/LTR switching correct; no mixed-direction defects
+- [ ] Auth, recovery, and session revocation work
+- [ ] All roles enforced at DB + server level (RLS suite green)
+- [ ] Volunteer workflow (submit → review → approve/reject → public visibility) works end to end
+- [ ] Session workflow works; double booking impossible; reminders fire
+- [ ] Feedback, quality alerts, hours ledger, points ledger reconcile
+- [ ] Admin dashboard, management modules, exports, audit logs work
+- [ ] Safeguarding report flow works and is access-restricted
+- [ ] Owner approved `/styleguide`; `check-design-smells.mjs` passes
+- [ ] Design passes the §5B "template smell" audit: humanist type pairing in use, no banned looks, no stock/AI imagery, copy free of banned phrases in both languages
+- [ ] WhatsApp handoff works after booking and volunteer application (localized prefilled message, reference code, fallbacks, number read from settings, no sensitive data in text)
+- [ ] Forms validate on client and server; error and empty states exist everywhere
+- [ ] No fake statistics, integrations, testimonials, or partners anywhere
+- [ ] No sensitive data exposed publicly (verified by anonymous-access test)
+- [ ] Lighthouse/axe/CWV targets met or deviations documented
+- [ ] §3B satisfied: skeleton and every phase deployed through CI → Render; `/api/health` is dependency-free and green; `verify:light` passes locally; full CI green; no deploy without green CI; `render.yaml` and `docs/deploy.md`, `docs/dev-setup.md`, `docs/lessons.md` present
+- [ ] README, `.env.example`, ADRs, ERD, runbooks, backup/restore drill, legal templates flagged for review
+
+---
+
+## 20. TECHNICAL STACK & REPOSITORY STRUCTURE
+
+**Stack:** Next.js 15 (App Router) with React 19 and a pinned Node LTS version · TypeScript (`strict`, no `any` without justification) · Tailwind CSS · Supabase (PostgreSQL, Auth, Storage, RLS, Edge Functions/cron for scheduled jobs) · Zod · `next-intl` · TanStack Query where client caching is required · Playwright + Vitest · ESLint/Prettier · GitHub Actions CI. Deviations require an ADR with justification.
+
+**Structure (adapt but keep the separation of concerns):**
+```
+/app/[locale]/(public|auth|student|volunteer|admin)/...
+/components/(ui|domain|layout)
+/lib/(auth|db|i18n|validation|matching|sessions|notifications|video|storage|audit)
+/messages/ar.json  /messages/en.json
+/supabase/migrations  /supabase/tests  /supabase/seed (labeled)
+/docs  (architecture, permissions, matching, safeguarding, data-retention, runbooks, decisions)
+/tests/(unit|integration|e2e)
+```
+Domain logic lives in `/lib` (framework-agnostic, unit-testable), not inside components. Provider and channel integrations use interfaces/adapters + a registry so new providers need no schema or core rewrites.
+
+---
+
+## 21. EXTENSIBILITY (ARCHITECTURE ONLY — NOT FAKE FEATURES)
+
+Design for, but **do not implement or advertise**: additional educational categories, skill-development programs, career mentoring, professional/corporate volunteering, community partnerships, certificates and volunteer recognition, institutional dashboards (schools/universities/NGOs with tenant-scoped data), GCC expansion (multi-country config, locale/currency/time/legal variations), additional notification channels, additional video providers. Provide: a `tenant/organization`-ready data model decision (ADR), feature flags (`platform_settings`), and extension points documented in `docs/extending.md`.
+
+---
+
+## 22. OPEN DECISIONS FOR THE OWNER [DECISION]
+
+State your assumption for each in Phase 0 and proceed with the safest default unless I override:
+
+1. Minimum student age for own login (default 15, guardian-linked) and under-15 flow (guardian-operated).
+2. Volunteer minimum age (default 18) and required safeguarding checks.
+3. Session recording (default: disabled).
+4. Group sessions (default: individual only in MVP).
+5. Primary video provider for MVP (default: external meeting link adapter).
+6. Data hosting region and PDPL review (default: document decision; legal review required).
+7. Public visibility of volunteer full names/photos (default: first name + last initial; photo opt-in).
+8. Hijri calendar display and digit style (defaults in §6).
+9. Admin MFA (default: recommended, optional).
+10. Email provider (default: abstracted; one real provider configured).
+11. Exact Node and Next.js 15.x versions (default: an actively supported Node LTS such as 22 or 24, **not Node 20, which reached end-of-life in April 2026**; confirm Render supports it; latest stable 15.x patch; pinned in `package.json`, `.nvmrc`, `engines`, CI and `render.yaml`).
+12. Render region and plan (default: closest available region to users; document cold-start behavior).
+
+---
+
+## 23. OUTPUT RULES
+
+- Write complete, runnable code and migrations — no pseudo-code, no "implement later" stubs in shipped paths, no `TODO` left in delivered code (unimplemented extension points must be explicit interfaces with documentation).
+- Explain security-relevant and non-obvious decisions briefly in code comments or ADRs.
+- When you cannot complete something (missing credentials, external accounts, legal input), **say exactly what is missing, what you did instead, and what the owner must do** — do not fake it.
+- End every phase with: **Built · How to run · How verified · Known gaps · Next phase.**
+
+**Closing principle:** AND MORE must be a platform a school, a university, a parent, and a community organization can trust with their children — because it is safe, honest, measurable, and built to last.
+
+*Knowledge becomes giving. Impact becomes possibility.*
