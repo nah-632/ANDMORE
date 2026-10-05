@@ -24,7 +24,7 @@ export default async function ApplyPage({ params }: Props) {
       <p className="text-sm text-ink/60">{t('eyebrow')}</p>
       <h1 className="mt-2 text-4xl font-bold">{t('title')}</h1>
       <p className="mt-3 max-w-prose text-ink/75">{t('intro')}</p>
-      <ApplyWizard locale={locale} />
+      <ApplyWizard />
     </main>
   );
 }

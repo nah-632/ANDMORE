@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 
 const CATEGORIES = ['inappropriate_conduct', 'safety_concern', 'content', 'technical', 'other'] as const;
 
-export function ReportForm({ locale }: { locale: string }) {
+export function ReportForm() {
   const t = useTranslations('report');
   const [category, setCategory] = useState<string>('safety_concern');
   const [severity, setSeverity] = useState<string>('medium');

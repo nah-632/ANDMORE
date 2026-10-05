@@ -18,7 +18,7 @@ type App = {
 
 const TABS = ['submitted', 'under_review', 'interview_scheduled', 'needs_more_info', 'approved', 'rejected'] as const;
 
-export function AdminConsole({ locale }: { locale: string }) {
+export function AdminConsole() {
   const t = useTranslations('admin');
   const [tab, setTab] = useState<(typeof TABS)[number]>('submitted');
   const [items, setItems] = useState<App[]>([]);
@@ -36,7 +36,6 @@ export function AdminConsole({ locale }: { locale: string }) {
 
   useEffect(() => {
     load(tab);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   async function decide(id: string, decision: string) {

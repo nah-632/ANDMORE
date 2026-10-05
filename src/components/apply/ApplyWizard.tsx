@@ -11,7 +11,7 @@ type Step = 1 | 2 | 3;
 
 const DRAFT_KEY = 'andmore-apply-draft';
 
-export function ApplyWizard({ locale }: { locale: string }) {
+export function ApplyWizard() {
   const t = useTranslations('apply');
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState<Record<string, string>>({});

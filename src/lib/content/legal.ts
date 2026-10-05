@@ -1,0 +1,54 @@
+// AUTO-EXTRACTED from supabase/migrations/0007_public_content.sql.
+// Source of truth for copy; the content_pages DB table is the P7 CMS path.
+export type ContentEntry = { title: string; body: string; requiresLegalReview: boolean };
+
+export const LEGAL_CONTENT: Record<string, Partial<Record<'ar' | 'en', ContentEntry>>> = {
+  "privacy": {
+    'ar': {
+      title: "سياسة الخصوصية",
+      body: "## سياسة الخصوصية\n\n**نسخة 1 — قابلة للمراجعة القانونية.** هذه السياسة مسودة أولية وتحتاج مراجعة من محامٍ مؤهل قبل الاعتماد النهائي وفق نظام حماية البيانات الشخصية السعودي (PDPL).\n\n### من نحن\nمنصة «AND MORE وأكثر» منصة تطوعية تعليمية سعودية تربط الطلاب بمتطوعين معتمدين لتقديم جلسات تعليمية مجانية عبر الإنترنت.\n\n### ما نجمعه\n- **الحساب:** البريد الإلكتروني، الاسم الأول، الحرف الأول من اسم العائلة، اللغة المفضلة.\n- **المتطوعون:** الخلفية التعليمية، المؤهل، المواد والمراحل، نبذة، مستندات التحقق (تُحفظ في مساحة خاصة، يراها المشرفون المصرّح لهم فقط، وكل وصول مُسجّل).\n- **الطلاب:** المرحلة الدراسية، الاحتياج التعليمي، وقت الجلسة المفضل. **لا نجمع أرقام الهوية الوطنية إطلاقًا.**\n\n### مبدأ الحد الأدنى\nنجمع فقط ما يحتاجه كل عنصر ليعمل. بيانات الأطفال محمية بإضافي: حساب القاصر مرتبط بولي أمر، وولي الأمر يرى الجلسات وسجلها.\n\n### من يرى ماذا\n- الجمهور: اسم المتطوع الأول + الحرف الأول من العائلة، نبذته، مواده (بعد اعتماده فقط).\n- المتطوع: طلابه المرتبطون به فقط، بمعلومات محدودة (الاسم الأول، المرحلة، المادة).\n- الإدارة: بحسب الدور، وكل قراراتها في سجل تدقيق غير قابل للتعديل.\n\n### واتساب\nعند اختيارك «متابعة عبر واتساب» ترسل رسالة قصيرة إلى رقم المنصة الرسمي تتضمن الرقم المرجعي والمرحلة والمادة والاسم الأول فقط. واتساب خدمة خارجية، ورقمك يظهر للفريق عند تواصلك معه.\n\n### حقوقك\nتطلب حذف حسابك أو نسخة من بياناتك عبر البريد أدناه، وسنستجيب وفق النظام.\n\n### التواصل\nلأي سؤال عن الخصوصية: عبر صفحة التواصل أو رقم واتساب المنصة الرسمي.\n",
+      requiresLegalReview: true
+    },
+    'en': {
+      title: "Privacy Policy",
+      body: "## Privacy Policy\n\n**Version 1 — pending legal review.** This is a draft requiring review by a qualified lawyer before final adoption under the Saudi Personal Data Protection Law (PDPL).\n\n### Who we are\nAND MORE is a Saudi volunteer education platform connecting students with verified volunteer tutors for free online sessions.\n\n### What we collect\n- **Account:** email, first name, last initial, preferred language.\n- **Volunteers:** education background, qualification, subjects and stages, bio, verification documents (stored in a private bucket, visible only to authorized admins, every access audited).\n- **Students:** educational stage, learning need, preferred session time. **We never collect national ID numbers.**\n\n### Data minimization\nWe collect only what each feature needs. Children's data gets extra protection: a minor's account is linked to a guardian, and the guardian can see the sessions and their records.\n\n### Who sees what\n- Public: volunteer's first name + last initial, bio, subjects (only after approval).\n- Volunteers: only their assigned students, with limited info (first name, stage, subject).\n- Admins: by role, with every decision written to an append-only audit log.\n\n### WhatsApp\nIf you choose “Continue on WhatsApp”, a short message is sent to the platform's official number containing only the reference code, stage, subject, and first name. WhatsApp is a third-party service; your number becomes visible to the team when you contact it.\n\n### Your rights\nRequest account deletion or a copy of your data via the contact page; we respond according to the law.\n\n### Contact\nFor any privacy question: via the contact page or the platform's official WhatsApp number.\n",
+      requiresLegalReview: true
+    }
+  },
+  "terms": {
+    'ar': {
+      title: "الشروط والأحكام",
+      body: "## الشروط والأحكام\n\n**نسخة 1 — قابلة للمراجعة القانونية.**\n\n### استخدام المنصة\nالمنصة مجانية بالكامل. لا توجد أي رسوم أو مدفوعات. الجلسات يقدّمها متطوعون، والمنصة تنظّم التواصل بين الطلاب وأولياء الأمور والمتطوعين.\n\n### الحسابات\n- الطالب دون 18 سنة يحتاج حساب ولي أمر مرتبطاً.\n- المتطوع يجب أن يكون 18 سنة أو أكثر، وأن يُعتمد قبل ظهوره.\n- لا يجوز مشاركة حسابك مع أحد.\n\n### سلوك المتطوعين\n- الالتزام بمدونة السلوك.\n- التواصل يبقى داخل المنصة. ممنوع تبادل أرقام التواصل أو الحسابات الشخصية مع الطلاب.\n- أي إخلال يؤدي إلى إيقاف الحساب فورًا.\n\n### إخلاء مسؤولية\nالمنصة وسيط تنظيمي. الجلسات التعليمية لا تُغني عن المنهج الرسمي ولا تضمن نتائج دراسية. المنصة لا تتحمل مسؤولية محتوى الجلسة نفسها بقدر ما تتحمل مسؤولية عملية التحقق والتنظيم.\n\n### الإنهاء\nيمكن لأي طرف إنهاء الحساب بطلب. نحتفظ بحق إيقاف الحسابات المخالفة فورًا.\n",
+      requiresLegalReview: true
+    },
+    'en': {
+      title: "Terms & Conditions",
+      body: "## Terms & Conditions\n\n**Version 1 — pending legal review.**\n\n### Using the platform\nThe platform is entirely free. There are no fees or payments. Sessions are delivered by volunteers; the platform organizes communication between students, guardians, and volunteers.\n\n### Accounts\n- A student under 18 needs a linked guardian account.\n- Volunteers must be 18 or older and approved before appearing.\n- Do not share your account with anyone.\n\n### Volunteer conduct\n- Follow the Code of Conduct.\n- Communication stays inside the platform. Exchanging phone numbers or personal accounts with students is prohibited.\n- Any violation leads to immediate account suspension.\n\n### Disclaimer\nThe platform is an organizing intermediary. Educational sessions do not replace the official curriculum and do not guarantee academic results. The platform's responsibility is the verification and organization process, not the session content itself.\n\n### Termination\nAny party may end an account by request. We reserve the right to suspend violating accounts immediately.\n",
+      requiresLegalReview: true
+    }
+  },
+  "child-safety": {
+    'ar': {
+      title: "سياسة حماية الأطفال",
+      body: "## سياسة حماية الأطفال\n\n**نسخة 1 — قابلة للمراجعة القانونية.**\n\n### مبدأنا\nسلامة الطالب أولاً وفي كل قرار. كل عنصر في المنصة مُقيّم بسؤال واحد: هل قد يعرّض هذا قاصراً للخطر؟\n\n### ما نفعله\n- **تحقق المتطوع:** لا يظهر أي متطوع علنًا قبل مراجعة طلبه واعتماده وقبوله مدونة السلوك.\n- **إشراف ولي الأمر:** حساب القاصر مرتبط بولي أمر يرى الجلسات وسجلها ورابط الانضمام.\n- **التواصل داخل المنصة:** ممنوع تبادل أرقام الجوال أو الحسابات الشخصية. النصوص تُفحص آلياً وتُنبّه المستخدم.\n- **زر الإبلاغ:** موجود دائمًا. البلاغات عالية الخطورة تصل الإدارة فورًا.\n- **إيقاف فوري:** عند أي بلاغ جدي، يُوقف الحساب لحين انتهاء التحقيق.\n\n### ما لا نفعله\n- لا نجمع هوية وطنية.\n- لا نعرض صور أو أسماء كاملة للطلاب علنًا.\n- لا نسجّل الجلسات (التسجيل معطّل افتراضيًا).\n\n### التبلاغ الخارجي\nإذا اعتقد فريقنا بوجود خطر حقيقي على طفل، فقد يكون للمنصة التزام نظامي بالإبلاغ للجهات المختصة. **تُستكمل هذه الفقرة بمراجعة قانونية — لا نذكر جهات غير مؤكدة.**\n",
+      requiresLegalReview: true
+    },
+    'en': {
+      title: "Child Safety Policy",
+      body: "## Child Safety Policy\n\n**Version 1 — pending legal review.**\n\n### Our principle\nStudent safety first, in every decision. Every feature is evaluated with one question: could this endanger a minor?\n\n### What we do\n- **Volunteer verification:** no volunteer appears publicly before their application is reviewed, approved, and the Code of Conduct accepted.\n- **Guardian oversight:** a minor's account is linked to a guardian who sees the sessions, their records, and the join link.\n- **Communication inside the platform:** exchanging phone numbers or personal accounts is prohibited. Text is scanned automatically and users are warned.\n- **Report button:** always available. High-severity reports reach admins immediately.\n- **Immediate suspension:** on any serious report, the account is suspended pending investigation.\n\n### What we do not do\n- No national ID collection.\n- No public display of student photos or full names.\n- No session recording (recording is off by default).\n\n### External reporting\nIf our team believes a child is in real danger, the platform may have a legal obligation to report to the competent authorities. **This paragraph is completed by legal review — we do not name unconfirmed entities.**\n",
+      requiresLegalReview: true
+    }
+  },
+  "about": {
+    'ar': {
+      title: "عن المنصة",
+      body: "## من نحن\n\n«AND MORE وأكثر» منصة سعودية تطوعية تربط الطلاب بمتطوعين مؤهلين لتقديم جلسات تعليمية مجانية عبر الإنترنت.\n\n### لماذا وُجدنا\nفي كل صف دراسي، طلاب يحتاجون دعماً إضافياً لا يجدونه: دروس خاصة مكلفة، أو معلمون غير متاحين، أو فجوة بين شرح الصف وفهم الطالب. وفي المقابل، أشخاص مؤهلون يريدون العطاء بوقتهم ومعرفتهم. المنصة تجمع الطرفين — بأمان وتنظيم وقياس أثر.\n\n### فلسفتنا\nالمعرفة عطاء. التطوع ليس فقط ساعات تُسجل، بل ثقة تُبنى وطلاب يصبحون أكثر قدرة.\n\n### كيف نضمن الجودة\nكل متطوع يمر بمراجعة جدية: خلفيته التعليمية، مؤهله، ومقابلته. لا يظهر أي متطوع علنًا إلا بعد اعتماده. الجلسات مرئية لولي الأمر، والتواصل يبقى داخل المنصة.\n\n### ماذا تعني «وأكثر»؟\nليس فقط تعليماً — بل فرصاً أكثر. ليس فقط تطوعاً — بل أثراً أكثر. ليس فقط جلسات — بل ثقة أكثر، ومعرفة أكثر، واحتمالات أكثر.\n\n### رؤيتنا\nأن يجد كل طالب في السعودية الدعم التعليمي الذي يحتاجه، بلا حاجز مالي. وأن يكون للتطوع مكان موثوق يُقاس أثره ويتنامى.\n",
+      requiresLegalReview: false
+    },
+    'en': {
+      title: "About Us",
+      body: "## Who we are\n\nAND MORE is a Saudi volunteer platform connecting students with qualified volunteers for free online educational sessions.\n\n### Why we exist\nIn every classroom there are students who need extra support they cannot find: private tutoring is expensive, teachers are stretched, or there is a gap between what is taught and what is understood. Meanwhile, qualified people want to give their time and knowledge. The platform brings the two sides together — safely, organized, and with measured impact.\n\n### Our philosophy\nKnowledge becomes giving. Volunteering is not only logged hours; it is trust built and students who grow more capable.\n\n### How we ensure quality\nEvery volunteer goes through a serious review: education background, qualification, and an interview. No volunteer appears publicly until approved. Guardians can see the sessions, and communication stays inside the platform.\n\n### What does \"AND MORE\" mean?\nNot only education — more opportunity. Not only volunteering — more impact. Not only sessions — more confidence, more knowledge, more possibilities.\n\n### Our vision\nThat every student in Saudi Arabia finds the educational support they need, without a financial barrier. And that volunteering has a trusted home where its impact is measured and grows.\n",
+      requiresLegalReview: false
+    }
+  }
+};

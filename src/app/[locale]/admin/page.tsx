@@ -25,7 +25,7 @@ export default async function AdminPage({ params }: Props) {
     <main className="mx-auto max-w-6xl px-5 py-12">
       <p className="text-sm text-ink/60">{t('eyebrow')}</p>
       <h1 className="mt-2 text-4xl font-bold">{t('title')}</h1>
-      <AdminConsole locale={locale} />
+      <AdminConsole />
     </main>
   );
 }
