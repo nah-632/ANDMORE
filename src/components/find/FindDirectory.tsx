@@ -33,7 +33,7 @@ export function FindDirectory({ locale }: { locale: string }) {
     return (
       <div className="mt-8 space-y-3" aria-live="polite" aria-busy="true">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 animate-pulse rounded border hairline bg-line/50" />
+          <div key={i} className="h-20 rounded border hairline bg-line/50" />
         ))}
         <span className="sr-only">{t('loading')}</span>
       </div>
