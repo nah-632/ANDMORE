@@ -30,15 +30,15 @@ export default async function ImpactPage({ params }: Props) {
 
   const db = svc();
   // Aggregate real data — never fabricate (§2.3). Suppress counts < 5 (§11).
-  const [{ data: sessions }, { data: hours }, { data: volunteers }] = await Promise.all([
+  const [sessionsRes, hoursRes, volunteersRes] = await Promise.all([
     db.from('sessions').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-    db.from('volunteer_hours_ledger').select('minutes', { head: true }),
+    db.from('volunteer_hours_ledger').select('minutes'),
     db.from('volunteer_profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
   ]);
 
-  const totalMinutes = (hours ?? []).reduce((acc, r) => acc + (r.minutes ?? 0), 0);
-  const sessionCount = sessions ?? 0;
-  const volunteerCount = volunteers ?? 0;
+  const sessionCount = sessionsRes.count ?? 0;
+  const volunteerCount = volunteersRes.count ?? 0;
+  const totalMinutes = (hoursRes.data ?? []).reduce((acc, r) => acc + (r.minutes ?? 0), 0);
   const suppress = (n: number) => (n > 0 && n < 5 ? null : n); // small-number suppression
 
   const stats = [
