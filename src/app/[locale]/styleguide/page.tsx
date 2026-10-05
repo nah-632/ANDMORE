@@ -2,10 +2,7 @@ import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/request';
 
-type Props = { params: Promise<{ locale: string }> | undefined };
-// NOTE: no generateStaticParams here — the [locale] layout's generateStaticParams
-// already fills the locale param for ALL nested routes. Re-declaring it in a child
-// segment makes Next 15.5 prerender this page with params=undefined.
+type Props = { params: Promise<{ locale: string }> };
 
 export default async function StyleguidePage({ params }: Props) {
   const { locale } = await params;
