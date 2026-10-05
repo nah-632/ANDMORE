@@ -121,10 +121,10 @@ export default async function StyleguidePage({ params }: Props) {
       <section className="mt-10">
         <h2 className="text-2xl font-bold">{ar ? 'قائمة الخطوات' : 'Step List'}</h2>
         <ol className="mt-4 space-y-4">
-          {ar
+          {(ar
             ? ['تسجيل المتطوع', 'التقييم والتحقق', 'تصنيف المتطوع']
             : ['Volunteer registration', 'Evaluation & verification', 'Volunteer classification']
-          }.map((label, i) => (
+          ).map((label, i) => (
             <li key={label} className="flex items-start gap-4">
               <span className="font-heading text-4xl font-bold text-gold" aria-hidden="true">
                 {String(i + 1).padStart(2, '0')}
