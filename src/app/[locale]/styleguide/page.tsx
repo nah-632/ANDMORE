@@ -1,11 +1,14 @@
+import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 
 type Props = { params: Promise<{ locale: string }> };
 
 export default async function StyleguidePage({ params }: Props) {
   const { locale } = await params;
+  if (locale !== 'ar' && locale !== 'en') notFound();
   setRequestLocale(locale);
   const ar = locale === 'ar';
+
 
   const headingSizes = [
     ['Display', 'text-5xl'],
@@ -136,6 +139,7 @@ export default async function StyleguidePage({ params }: Props) {
       </section>
 
       {/* Empty state. */}
+
       <section className="mt-10">
         <h2 className="text-2xl font-bold">{ar ? 'حالة فارغة' : 'Empty State'}</h2>
         <div className="mt-4 rounded border hairline bg-white p-8 text-center">
