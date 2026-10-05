@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
+import { Reveal } from '@/components/motion/Reveal';
 
 /**
  * HomePage — premium editorial redesign (ADR-0002):
@@ -26,7 +27,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </svg>
 
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-12 md:grid-cols-[6fr_5fr] md:pb-24 md:pt-20">
-          <div>
+          <div className="hero-enter">
             <h1 className="text-4xl font-bold leading-tight text-navy sm:text-5xl md:text-6xl">
               {t('heroTitle')}
             </h1>
@@ -81,7 +82,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               />
             </div>
           </figure>
-          <div className="order-1 md:order-2">
+          <Reveal className="order-1 md:order-2">
             <h2 className="text-3xl font-bold sm:text-4xl">{t('missionTitle')}</h2>
             <p className="mt-4 max-w-prose text-paper/85">{t('missionBody')}</p>
             <a
@@ -90,7 +91,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             >
               {t('missionLink')}
             </a>
-          </div>
+          </Reveal>
         </div>
       </section>
 

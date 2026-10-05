@@ -163,5 +163,23 @@
     "submit_failed": "Could not send the report. Try again.",
     "success_title": "We received your report.",
     "success_body": "Thank you for your trust. Our team will review it and reach out if needed."
+  },
+  "subjects": {
+    "loading": "Loading...",
+    "search": "Search subjects...",
+    "empty": "No matching subjects.",
+    "clear": "Clear search"
+  },
+  "impact": {},
+  "contact": {
+    "title": "We are here to answer",
+    "intro": "The fastest way to reach us is WhatsApp — the team monitors it directly.",
+    "wa_title": "AND MORE on WhatsApp",
+    "wa_body": "Message us and we will get back to you. This channel is for contacting the platform team only.",
+    "hours_title": "Response times",
+    "hours_body": "We monitor messages daily and aim to reply within one business day.",
+    "safety_title": "Safety reports",
+    "safety_body": "For any concern about a student's safety, use the report form — high-severity reports reach admins immediately.",
+    "safety_link": "Open the report form"
   }
 }
