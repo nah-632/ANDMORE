@@ -38,6 +38,18 @@ jobs:
       - name: Build
         run: npx next build
 
+      - name: Dump crash site (diagnostic, remove after fix)
+        if: failure()
+        run: |
+          F='.next/server/app/[locale]/styleguide/page.js'
+          if [ -f "$F" ]; then
+            echo "=== line 2, cols 16900-17600 ==="
+            sed -n '2p' "$F" | cut -c16900-17600
+          else
+            echo "compiled file not found"
+            find .next/server -name "page.js" | head
+          fi
+
   rls:
     runs-on: ubuntu-latest
     needs: build

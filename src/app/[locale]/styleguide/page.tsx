@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
-import { locales, type Locale } from '@/i18n/request';
+import type { Locale } from '@/i18n/request';
 
 type Props = { params: Promise<{ locale: string }> | undefined };
 // NOTE: no generateStaticParams here — the [locale] layout's generateStaticParams
