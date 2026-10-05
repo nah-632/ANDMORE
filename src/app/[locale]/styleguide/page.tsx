@@ -8,19 +8,10 @@ type Props = { params: Promise<{ locale: string }> | undefined };
 // segment makes Next 15.5 prerender this page with params=undefined.
 
 export default async function StyleguidePage({ params }: Props) {
-  // TEMPORARY DIAGNOSTIC (remove after verification)
-  let loc: string;
-  if (params === undefined) {
-    console.error('[prerender-probe] styleguide: params is UNDEFINED');
-    loc = 'ar';
-  } else {
-    const p = await params;
-    console.error('[prerender-probe] styleguide: params =', JSON.stringify(p));
-    loc = p?.locale ?? 'ar';
-  }
-  if (loc !== 'ar' && loc !== 'en') notFound();
-  setRequestLocale(loc as Locale);
-  const ar = loc === 'ar';
+  const { locale } = await params;
+  if (locale !== 'ar' && locale !== 'en') notFound();
+  setRequestLocale(locale as Locale);
+  const ar = locale === 'ar';
 
 
   const headingSizes = [

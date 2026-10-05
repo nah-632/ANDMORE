@@ -1,9 +1,15 @@
 import { getTranslations } from 'next-intl/server';
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = { params?: Promise<{ locale?: string }> };
 
+/**
+ * Locale-scoped not-found. During prerender Next.js renders this boundary
+ * WITHOUT params (await undefined) — destructuring `{ locale }` directly
+ * crashes the build (lesson learned 2026-10-05). Guard everything.
+ */
 export default async function NotFoundPage({ params }: Props) {
-  const { locale } = await params;
+  const p = params ? await params : undefined;
+  const locale = p?.locale === 'en' ? 'en' : 'ar';
   const t = await getTranslations({ locale, namespace: 'nav' });
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col items-center justify-center px-5 text-center">

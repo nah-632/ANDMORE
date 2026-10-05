@@ -38,19 +38,6 @@ jobs:
       - name: Build
         run: npx next build
 
-      - name: Dump crash site (diagnostic, remove after fix)
-        if: failure()
-        run: |
-          F='.next/server/app/[locale]/page.js'
-          if [ -f "$F" ]; then
-            echo "=== page.js line 2, cols 7000-8200 (crash at 7482) ==="
-            sed -n '2p' "$F" | cut -c7000-8200
-            echo "=== which modules destructure locale ==="
-            grep -o '.\{80\}{ *locale *.\{40\}' "$F" | head -4
-          else
-            echo "compiled file not found"
-          fi
-
   rls:
     runs-on: ubuntu-latest
     needs: build

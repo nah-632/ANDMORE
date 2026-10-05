@@ -8,16 +8,7 @@ export function generateStaticParams() {
 }
 
 export default async function HomePage({ params }: Props) {
-  // TEMPORARY DIAGNOSTIC: probe params shape during prerender.
-  let locale: Locale;
-  if (params === undefined) {
-    console.error('[prerender-probe] home: params is UNDEFINED');
-    locale = 'ar';
-  } else {
-    const p = await params;
-    console.error('[prerender-probe] home: params =', JSON.stringify(p));
-    locale = (p?.locale as Locale) ?? 'ar';
-  }
+  const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'home' });
 
