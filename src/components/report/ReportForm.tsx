@@ -1,6 +1,6 @@
 'use client';
 
-/** Simple report form (§10 v2): category + severity + description. Rate-limited server-side. */
+/** Report form (§10 v2) — restyled with the unified field system. */
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
@@ -12,6 +12,7 @@ export function ReportForm() {
   const [severity, setSeverity] = useState<string>('medium');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
   async function submit() {
@@ -20,53 +21,63 @@ export function ReportForm() {
       setError(t('desc_required'));
       return;
     }
+    setSubmitting(true);
     const res = await fetch('/api/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category, severity, description }),
     });
+    setSubmitting(false);
     if (res.ok) setDone(true);
     else setError(t('submit_failed'));
   }
 
   if (done) {
     return (
-      <div className="mt-8 rounded border hairline bg-white p-8 text-center">
-        <h2 className="text-2xl font-bold">{t('success_title')}</h2>
+      <div className="mt-10 rounded border hairline bg-white p-8 text-center shadow-float">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sand/30 text-2xl" aria-hidden="true">
+          ✓
+        </span>
+        <h2 className="mt-4 text-2xl font-bold text-navy">{t('success_title')}</h2>
         <p className="mt-2 text-ink/75">{t('success_body')}</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-8 rounded border hairline bg-white p-6">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="mt-10 rounded border hairline bg-white p-6 sm:p-8">
+      <div className="grid gap-5 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">{t('category')}</span>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded border border-line bg-white px-3 py-2.5">
+          <span className="field-label">{t('category')}</span>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="field-input">
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{t(`cat_${c}`)}</option>
             ))}
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">{t('severity')}</span>
-          <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded border border-line bg-white px-3 py-2.5">
+          <span className="field-label">{t('severity')}</span>
+          <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="field-input">
             {['low', 'medium', 'high', 'critical'].map((s) => (
               <option key={s} value={s}>{t(`sev_${s}`)}</option>
             ))}
           </select>
         </label>
       </div>
-      <label className="mt-4 block">
-        <span className="mb-1 block text-sm font-medium">{t('description')}</span>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={2000} className="w-full rounded border border-line bg-white px-3 py-2.5" />
+      <label className="mt-5 block">
+        <span className="field-label">{t('description')}</span>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={2000} className="field-input" />
       </label>
       {error && (
-        <p role="alert" className="mt-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+        <p role="alert" className="mt-5 rounded border border-terra/40 bg-terra/10 px-4 py-3 text-sm text-terra">{error}</p>
       )}
-      <button type="button" onClick={submit} className="mt-6 rounded border border-navy bg-navy px-5 py-3 font-semibold text-paper hover:bg-blue">
-        {t('submit')}
+      <button
+        type="button"
+        onClick={submit}
+        disabled={submitting}
+        className="mt-8 w-full rounded bg-navy px-6 py-3 font-semibold text-paper transition-colors hover:bg-blue disabled:opacity-60 sm:w-auto"
+      >
+        {submitting ? '…' : t('submit')}
       </button>
     </div>
   );

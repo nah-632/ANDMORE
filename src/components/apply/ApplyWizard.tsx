@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Volunteer application wizard (§7): 3 steps, autosave to localStorage,
- * client-side Zod-lite checks; server action validates authoritatively.
+ * ApplyWizard — 3-step volunteer application (§7): autosave draft, CoC gate,
+ * wa.me handoff on success. Restyled with the unified field system.
  */
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -17,8 +17,8 @@ export function ApplyWizard() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Autosave draft (§17: preserved input on error / resume)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
@@ -36,11 +36,11 @@ export function ApplyWizard() {
 
   async function submit() {
     setError(null);
-    // Client pre-check: CoC required (§7 HARD)
     if (form.coc !== 'yes') {
       setError(t('coc_required'));
       return;
     }
+    setSubmitting(true);
     const res = await fetch('/api/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -59,6 +59,7 @@ export function ApplyWizard() {
         cocAccepted: form.coc === 'yes',
       }),
     });
+    setSubmitting(false);
     if (res.ok) {
       localStorage.removeItem(DRAFT_KEY);
       setDone(true);
@@ -70,14 +71,17 @@ export function ApplyWizard() {
 
   if (done) {
     return (
-      <div className="mt-8 rounded border hairline bg-white p-8 text-center">
-        <h2 className="text-2xl font-bold">{t('success_title')}</h2>
+      <div className="mt-10 rounded border hairline bg-white p-8 text-center shadow-float">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sand/30 text-2xl" aria-hidden="true">
+          ✓
+        </span>
+        <h2 className="mt-4 text-2xl font-bold text-navy">{t('success_title')}</h2>
         <p className="mt-2 text-ink/75">{t('success_body')}</p>
         <a
-          href={`https://wa.me/966508342500?text=${encodeURIComponent(t('wa_prefill'))}`}
+          href="https://wa.me/966508342500"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-block rounded border border-navy bg-navy px-5 py-3 font-semibold text-paper hover:bg-blue"
+          className="mt-6 inline-block rounded bg-navy px-6 py-3 font-semibold text-paper transition-colors hover:bg-blue"
         >
           {t('wa_button')}
         </a>
@@ -87,70 +91,79 @@ export function ApplyWizard() {
   }
 
   return (
-    <div className="mt-8">
-      {/* Progress: numbered steps (§5B: numerals, not icon cards) */}
-      <ol className="flex items-center gap-2" aria-label={t('progress')}>
+    <div className="mt-10">
+      {/* Progress: numbered circles with connecting line */}
+      <ol className="flex items-center" aria-label={t('progress')}>
         {[1, 2, 3].map((s) => (
-          <li key={s} className="flex items-center gap-2">
+          <li key={s} className="flex flex-1 items-center last:flex-none">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                s === step ? 'bg-navy text-paper' : s < step ? 'bg-sand text-ink' : 'border hairline text-ink/50'
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors duration-300 ${
+                s === step
+                  ? 'bg-navy text-paper'
+                  : s < step
+                    ? 'bg-sand text-navy'
+                    : 'border border-line bg-white text-ink/40'
               }`}
               aria-current={s === step ? 'step' : undefined}
             >
-              {s}
+              {s < step ? '✓' : s}
             </span>
-            <span className="text-sm">{t(`step${s}`)}</span>
-            {s < 3 && <span className="mx-1 h-px w-6 bg-line" aria-hidden="true" />}
+            {s < 3 && (
+              <span
+                className={`mx-2 h-0.5 flex-1 transition-colors duration-300 ${s < step ? 'bg-sand' : 'bg-line'}`}
+                aria-hidden="true"
+              />
+            )}
           </li>
         ))}
       </ol>
+      <p className="mt-2 text-sm font-medium text-ink/60">{t(`step${step}`)}</p>
 
-      <div className="mt-6 rounded border hairline bg-white p-6">
+      <div className="mt-5 rounded border hairline bg-white p-6 sm:p-8">
         {step === 1 && (
-          <div className="grid gap-4">
+          <div className="grid gap-5">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('full_name')}</span>
-              <input value={form.fullName ?? ''} onChange={set('fullName')} className="w-full rounded border border-line bg-white px-3 py-2.5" />
+              <span className="field-label">{t('full_name')}</span>
+              <input value={form.fullName ?? ''} onChange={set('fullName')} className="field-input" autoComplete="name" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('email')}</span>
-              <input type="email" value={form.email ?? ''} onChange={set('email')} className="w-full rounded border border-line bg-white px-3 py-2.5" dir="ltr" />
+              <span className="field-label">{t('email')}</span>
+              <input type="email" value={form.email ?? ''} onChange={set('email')} className="field-input" dir="ltr" autoComplete="email" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('phone')}</span>
-              <input value={form.phone ?? ''} onChange={set('phone')} className="w-full rounded border border-line bg-white px-3 py-2.5" dir="ltr" />
+              <span className="field-label">{t('phone')}</span>
+              <input value={form.phone ?? ''} onChange={set('phone')} className="field-input" dir="ltr" inputMode="tel" autoComplete="tel" />
             </label>
           </div>
         )}
         {step === 2 && (
-          <div className="grid gap-4">
+          <div className="grid gap-5">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('education')}</span>
-              <textarea value={form.education ?? ''} onChange={set('education')} rows={3} className="w-full rounded border border-line bg-white px-3 py-2.5" />
+              <span className="field-label">{t('education')}</span>
+              <textarea value={form.education ?? ''} onChange={set('education')} rows={3} className="field-input" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('qualification')}</span>
-              <input value={form.qualification ?? ''} onChange={set('qualification')} className="w-full rounded border border-line bg-white px-3 py-2.5" />
+              <span className="field-label">{t('qualification')}</span>
+              <input value={form.qualification ?? ''} onChange={set('qualification')} className="field-input" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('experience_years')}</span>
-              <input type="number" min={0} max={60} value={form.experienceYears ?? ''} onChange={set('experienceYears')} className="w-full rounded border border-line bg-white px-3 py-2.5" dir="ltr" />
+              <span className="field-label">{t('experience_years')}</span>
+              <input type="number" min={0} max={60} value={form.experienceYears ?? ''} onChange={set('experienceYears')} className="field-input" dir="ltr" inputMode="numeric" />
             </label>
           </div>
         )}
         {step === 3 && (
-          <div className="grid gap-4">
+          <div className="grid gap-5">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">{t('bio')}</span>
-              <textarea value={form.bio ?? ''} onChange={set('bio')} rows={4} maxLength={1000} className="w-full rounded border border-line bg-white px-3 py-2.5" />
+              <span className="field-label">{t('bio')}</span>
+              <textarea value={form.bio ?? ''} onChange={set('bio')} rows={4} maxLength={1000} className="field-input" />
             </label>
-            <label className="flex items-start gap-3 rounded border hairline bg-paper p-4">
+            <label className="flex cursor-pointer items-start gap-3 rounded border hairline bg-paper p-4 transition-colors hover:bg-sand/15">
               <input
                 type="checkbox"
                 checked={form.coc === 'yes'}
                 onChange={(e) => setForm((f) => ({ ...f, coc: e.target.checked ? 'yes' : 'no' }))}
-                className="mt-1 h-5 w-5"
+                className="mt-1 h-5 w-5 accent-[#102A56]"
               />
               <span className="text-sm">{t('coc_text')}</span>
             </label>
@@ -158,17 +171,17 @@ export function ApplyWizard() {
         )}
 
         {error && (
-          <p role="alert" className="mt-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p role="alert" className="mt-5 rounded border border-terra/40 bg-terra/10 px-4 py-3 text-sm text-terra">
             {error}
           </p>
         )}
 
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-8 flex items-center justify-between">
           <button
             type="button"
             disabled={step === 1}
             onClick={() => setStep((s) => (s > 1 ? ((s - 1) as Step) : s))}
-            className="rounded border border-navy px-4 py-2 text-sm font-semibold text-navy disabled:opacity-40 hover:bg-line"
+            className="rounded border border-navy px-5 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-sand/30 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {t('back')}
           </button>
@@ -176,7 +189,7 @@ export function ApplyWizard() {
             <button
               type="button"
               onClick={() => setStep((s) => (s < 3 ? ((s + 1) as Step) : s))}
-              className="rounded border border-navy bg-navy px-5 py-2 text-sm font-semibold text-paper hover:bg-blue"
+              className="rounded bg-navy px-6 py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-blue"
             >
               {t('next')}
             </button>
@@ -184,9 +197,10 @@ export function ApplyWizard() {
             <button
               type="button"
               onClick={submit}
-              className="rounded border border-navy bg-navy px-5 py-2 text-sm font-semibold text-paper hover:bg-blue"
+              disabled={submitting}
+              className="rounded bg-navy px-6 py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-blue disabled:opacity-60"
             >
-              {t('submit')}
+              {submitting ? '…' : t('submit')}
             </button>
           )}
         </div>

@@ -52,7 +52,7 @@ export function SubjectsDirectory({ locale }: { locale: string }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t('search')}
-          className="w-full rounded border border-line bg-white px-4 py-3 text-base transition-shadow focus:border-blue focus:shadow-float focus:outline-none"
+          className="field-input"
         />
       </label>
 

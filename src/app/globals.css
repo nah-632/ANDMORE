@@ -83,6 +83,37 @@ h1, h2, h3, h4 {
   }
 }
 
+/* ============ Forms: unified premium field system (final polish pass) ============ */
+/* Applied via .field / .field-label / .field-input utility classes (§17 form polish). */
+.field-label {
+  @apply mb-1.5 block text-sm font-semibold text-ink;
+}
+.field-input {
+  @apply w-full rounded border border-line bg-white px-3.5 py-2.5 text-base text-ink transition-all duration-200 placeholder:text-ink/40 hover:border-ink/30 focus:border-blue focus:shadow-float focus:outline-none;
+}
+.field-input:disabled {
+  @apply cursor-not-allowed bg-line/40 text-ink/40;
+}
+.field-error {
+  @apply mt-1.5 block text-sm text-terra;
+}
+.field-hint {
+  @apply mt-1.5 block text-xs text-ink/55;
+}
+/* Native select arrow — brand-styled, RTL-safe */
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23102A56' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.9rem center; /* RTL: arrow on the start side */
+  padding-inline-start: 2.6rem;
+}
+html[lang='en'] select.field-input {
+  background-position: right 0.9rem center;
+  padding-inline-start: 0.75rem;
+  padding-inline-end: 2.6rem;
+}
+
 /* Hairline divider (§5B tactile quality). */
 .hairline {
   border-color: theme('colors.line');

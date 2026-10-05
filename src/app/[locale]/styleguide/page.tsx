@@ -4,6 +4,8 @@ import type { Locale } from '@/i18n/request';
 
 type Props = { params: Promise<{ locale: string }> };
 
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function StyleguidePage({ params }: Props) {
   const { locale } = await params;
   if (locale !== 'ar' && locale !== 'en') notFound();
