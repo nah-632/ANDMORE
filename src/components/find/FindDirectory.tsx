@@ -54,7 +54,7 @@ export function FindDirectory({ locale }: { locale: string }) {
         <li key={v.id} className="rounded border hairline bg-white p-5">
           <p className="font-bold">
             {v.first_name} {v.last_initial ? `${v.last_initial}.` : ''}
-            <span className="ms-2 rounded-full bg-teal/15 px-2 py-0.5 text-xs font-semibold text-navy">
+            <span className="ms-2 rounded-full bg-sky/15 px-2 py-0.5 text-xs font-semibold text-navy">
               ✓ {t('verified')}
             </span>
           </p>

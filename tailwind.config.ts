@@ -1,16 +1,18 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * AND MORE — design tokens (§5B locked decisions).
- * Color values sampled from the owner's official logo assets
- * (scripts/sample-brand-colors.py, 2026-10-05):
- *   navy  #082748  (lockup dominant dark)
- *   blue  #114E8B  (lockup mid blue)
- *   gold  #D5A66A  (lockup warm accent — THE accent per §5B)
- *   teal  #5C9C9D  (supporting tone only)
- *   paper #FAF9F5  (warm off-white)
- *   ink   #0F192B  (graphite text)
- *   line  #E4E1D8  (warm hairline)
+ * AND MORE — design tokens.
+ *
+ * UPDATE (ADR-0002, owner's official brand guide supersedes sampled values):
+ *   navy  #102A56  Academic Navy (primary)
+ *   blue  #2563EB  Primary Blue (CTAs, links)
+ *   sky   #60A5FA  Light Blue (highlights, hover)
+ *   sand  #D6B98A  Sand Beige (warm accent)
+ *   terra #C96A3A  Terracotta (selective emphasis only)
+ *   paper #FAFBFC  Pearl White (background)
+ *   ink   #0F192B  graphite text
+ *   line  #E4E1D8  hairline border
+ * Fonts UNCHANGED (§5B locked four families) — owner directive #1.
  */
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
@@ -18,11 +20,12 @@ const config: Config = {
     extend: {
       colors: {
         ink: '#0F192B',
-        navy: '#082748',
-        blue: '#114E8B',
-        gold: '#D5A66A',
-        teal: '#5C9C9D',
-        paper: '#FAF9F5',
+        navy: '#102A56',
+        blue: '#2563EB',
+        sky: '#60A5FA',
+        sand: '#D6B98A',
+        terra: '#C96A3A',
+        paper: '#FAFBFC',
         line: '#E4E1D8',
       },
       fontFamily: {

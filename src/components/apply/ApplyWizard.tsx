@@ -94,7 +94,7 @@ export function ApplyWizard() {
           <li key={s} className="flex items-center gap-2">
             <span
               className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                s === step ? 'bg-navy text-paper' : s < step ? 'bg-gold text-ink' : 'border hairline text-ink/50'
+                s === step ? 'bg-navy text-paper' : s < step ? 'bg-sand text-ink' : 'border hairline text-ink/50'
               }`}
               aria-current={s === step ? 'step' : undefined}
             >

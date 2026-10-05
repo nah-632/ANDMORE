@@ -1,38 +1,82 @@
 /**
- * SiteFooter: tagline, legal links, WhatsApp contact (§14B official number).
+ * SiteFooter — Academic Navy, official logo, brand statement, full links (ADR-0002 §16).
  */
-import Link from 'next/link';
+import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 
 export async function SiteFooter({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: 'footer' });
   const tNav = await getTranslations({ locale, namespace: 'nav' });
 
+  const cols: Array<[string, Array<[string, string]>]> = [
+    [
+      locale === 'ar' ? 'المنصة' : 'Platform',
+      [
+        [tNav('about'), `/${locale}/about`],
+        [tNav('how'), `/${locale}/how`],
+        [tNav('subjects'), `/${locale}/subjects`],
+        [tNav('find'), `/${locale}/find`],
+      ],
+    ],
+    [
+      locale === 'ar' ? 'شارك' : 'Get involved',
+      [
+        [tNav('volunteer'), `/${locale}/apply`],
+        [tNav('impact'), `/${locale}/impact`],
+        [locale === 'ar' ? 'احجز جلسة' : 'Book a session', `/${locale}/book`],
+        [tNav('contact'), `/${locale}/contact`],
+      ],
+    ],
+    [
+      locale === 'ar' ? 'الثقة' : 'Trust',
+      [
+        [tNav('safety'), `/${locale}/child-safety`],
+        [t('privacy'), `/${locale}/privacy`],
+        [t('terms'), `/${locale}/terms`],
+      ],
+    ],
+  ];
+
   return (
     <footer className="bg-navy text-paper">
-      <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-[5fr_7fr]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-[4fr_8fr]">
         <div>
-          <p className="text-2xl font-bold">
-            AND MORE <span className="text-gold">|</span> <span lang="ar">وأكثر</span>
-          </p>
-          <p className="mt-2 text-paper/80">{t('tagline')}</p>
-          <p className="mt-4 text-sm text-paper/60">
-            <a href="https://wa.me/966508342500" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4" dir="ltr">
-              +966 50 834 2500
-            </a>
-          </p>
+          <Image
+            src="/assets/brand/logo-official.png"
+            alt="AND MORE | وأكثر"
+            width={120}
+            height={110}
+            className="h-24 w-auto brightness-0 invert"
+          />
+          <p className="mt-4 max-w-xs text-paper/85">{t('tagline')} — {t('brand_line')}</p>
+          <a
+            href="https://wa.me/966508342500"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-block rounded border border-paper/40 px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-paper hover:text-navy"
+            dir="ltr"
+          >
+            +966 50 834 2500
+          </a>
         </div>
-        <nav aria-label={locale === 'ar' ? 'روابط' : 'Links'} className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-          <Link href={`/${locale}/about`} className="text-paper/80 hover:text-paper hover:underline">{tNav('about')}</Link>
-          <Link href={`/${locale}/how`} className="text-paper/80 hover:text-paper hover:underline">{tNav('how')}</Link>
-          <Link href={`/${locale}/subjects`} className="text-paper/80 hover:text-paper hover:underline">{tNav('subjects')}</Link>
-          <Link href={`/${locale}/find`} className="text-paper/80 hover:text-paper hover:underline">{tNav('find')}</Link>
-          <Link href={`/${locale}/apply`} className="text-paper/80 hover:text-paper hover:underline">{tNav('volunteer')}</Link>
-          <Link href={`/${locale}/impact`} className="text-paper/80 hover:text-paper hover:underline">{tNav('impact')}</Link>
-          <Link href={`/${locale}/child-safety`} className="text-paper/80 hover:text-paper hover:underline">{tNav('safety')}</Link>
-          <Link href={`/${locale}/privacy`} className="text-paper/80 hover:text-paper hover:underline">{t('privacy')}</Link>
-          <Link href={`/${locale}/terms`} className="text-paper/80 hover:text-paper hover:underline">{t('terms')}</Link>
-          <Link href={`/${locale}/contact`} className="text-paper/80 hover:text-paper hover:underline">{tNav('contact')}</Link>
+        <nav
+          aria-label={locale === 'ar' ? 'روابط التذييل' : 'Footer links'}
+          className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3"
+        >
+          {cols.map(([title, items]) => (
+            <div key={title}>
+              <p className="text-sm font-bold text-sand">{title}</p>
+              <ul className="mt-3 space-y-2">
+                {items.map(([label, href]) => (
+                  <li key={href}>
+                    <a href={href} className="text-sm text-paper/80 transition-colors hover:text-paper hover:underline hover:underline-offset-4">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
       </div>
       <div className="border-t border-paper/15">

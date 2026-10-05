@@ -40,6 +40,19 @@ function walk(dir, out = []) {
 
 function fail(msg) { console.error(`DESIGN ${msg}`); violations++; }
 
+// 1b) banned legacy palette hexes (ADR-0002: owner's official palette only)
+const bannedHexes = ['#082748', '#114E8B', '#D5A66A', '#5C9C9D', '#FAF9F5', '#0F192B'];
+for (const f of walk(srcDir).filter((f) => /\.(tsx|ts|css)$/.test(f))) {
+  const lines = readFileSync(f, 'utf8').split('\n');
+  lines.forEach((line, i) => {
+    for (const h of bannedHexes) {
+      if (line.toLowerCase().includes(h.toLowerCase()) && !line.includes('design-ok:')) {
+        fail(`${relative(ROOT, f)}:${i + 1}: legacy palette hex "${h}" — use official palette (ADR-0002)`);
+      }
+    }
+  });
+}
+
 // 1) banned classes / fonts in TSX/TS source
 for (const f of walk(srcDir).filter((f) => /\.(tsx|ts)$/.test(f))) {
   const lines = readFileSync(f, 'utf8').split('\n');

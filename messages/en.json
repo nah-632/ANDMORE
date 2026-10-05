@@ -12,27 +12,49 @@
   },
   "home": {
     "heroTitle": "The right tutor. A brighter future.",
-    "heroSub": "Free online educational sessions, delivered by verified qualified volunteers to primary, intermediate, and secondary students.",
+    "heroSub": "Free online educational sessions delivered by verified, qualified volunteers to primary, intermediate, and secondary students — safe, organized, and with measured impact.",
     "ctaFind": "Find Educational Support",
     "ctaVolunteer": "Become a Volunteer",
-    "howLink": "How it works",
-    "trustTitle": "Trusted from the start",
-    "trustBody": "Every volunteer is reviewed and verified before appearing here. Guardians can see every session, and all communication stays inside the platform.",
+    "trust_line": "Every volunteer is reviewed and verified before appearing. Guardians can see every session.",
+    "missionTitle": "Together, we create a brighter future",
+    "missionBody": "A Saudi volunteer platform bringing education graduates together to teach students and support their learning journey — because knowledge is giving, and every student deserves support that costs their family nothing.",
+    "missionLink": "See our impact",
+    "howTitle": "How the platform works",
+    "how1_title": "Volunteer registration",
+    "how1_body": "Education graduates apply with their background, qualifications, and subjects.",
+    "how2_title": "Evaluation & verification",
+    "how2_body": "Our team reviews every application: qualifications, background, and a short interview. Nobody appears before approval.",
+    "how3_title": "Volunteer classification",
+    "how3_body": "Each volunteer is classified by stage, subjects, and teaching style.",
+    "how4_title": "Matching",
+    "how4_body": "We connect each student's request with the best-fit volunteer — with clear reasons, never internal scores.",
+    "how5_title": "Session & impact",
+    "how5_body": "The session happens, feedback is recorded, and volunteer hours are documented in an append-only ledger.",
+    "volunteerEyebrow": "Join our volunteer tutors",
+    "volunteerTitle": "Make a difference in a student's life.",
+    "volunteerBody": "If you are a graduate or teacher with time and knowledge to give — this is your place. Your hours are documented, your impact is measured, and your student is waiting.",
+    "volunteerPoint1": "Official verification with a “Verified Volunteer” badge.",
+    "volunteerPoint2": "A flexible schedule you set, sessions online.",
+    "volunteerPoint3": "An official hours statement you can rely on.",
+    "volunteerCta": "Apply to volunteer",
     "impactTitle": "Our impact so far",
-    "impactEmpty": "Numbers will appear as the platform grows. We never display invented figures — every number here comes from real sessions recorded in the database.",
-    "impactSessions": "educational sessions",
-    "impactHours": "documented volunteer hours",
-    "impactVolunteers": "verified volunteers",
-    "impactStudents": "students supported"
+    "impactEmpty": "Numbers will appear as the platform grows. We never display invented figures — every number comes from real sessions recorded in the database.",
+    "ctaBandTitle": "Start today",
+    "ctaBandBody": "Whether you are a student looking for support, or a volunteer with time to give — the platform is open to you."
   },
   "footer": {
     "tagline": "Knowledge becomes giving",
-    "rights": "AND MORE — a volunteer education platform",
+    "brand_line": "A Saudi volunteer education platform.",
     "privacy": "Privacy",
-    "terms": "Terms"
+    "terms": "Terms",
+    "rights": "AND MORE — a volunteer education platform"
   },
   "langSwitch": {
     "label": "العربية"
+  },
+  "content": {
+    "missing": "This page is not available yet.",
+    "legal_review": "This page is a draft pending legal review. It is not a final legal commitment."
   },
   "apply": {
     "eyebrow": "Join as a volunteer",
@@ -141,9 +163,5 @@
     "submit_failed": "Could not send the report. Try again.",
     "success_title": "We received your report.",
     "success_body": "Thank you for your trust. Our team will review it and reach out if needed."
-  },
-  "content": {
-    "missing": "This page is not available yet.",
-    "legal_review": "This page is a draft pending legal review. It is not a final legal commitment."
   }
 }
