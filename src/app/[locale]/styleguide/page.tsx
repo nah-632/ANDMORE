@@ -1,12 +1,17 @@
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
+import { locales, type Locale } from '@/i18n/request';
 
 type Props = { params: Promise<{ locale: string }> };
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export default async function StyleguidePage({ params }: Props) {
   const { locale } = await params;
   if (locale !== 'ar' && locale !== 'en') notFound();
-  setRequestLocale(locale);
+  setRequestLocale(locale as Locale);
   const ar = locale === 'ar';
 
 

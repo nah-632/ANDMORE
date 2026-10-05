@@ -1,7 +1,11 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import type { Locale } from '@/i18n/request';
+import { locales, type Locale } from '@/i18n/request';
 
 type Props = { params: Promise<{ locale: Locale }> };
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
