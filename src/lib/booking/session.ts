@@ -123,8 +123,8 @@ export function inWeeklyWindow(
   const minutes = Number(get('hour')) * 60 + Number(get('minute'));
   return rules.some((r) => {
     if (r.weekday !== weekday) return false;
-    const [sh, sm] = r.start.split(':').map(Number);
-    const [eh, em] = r.end.split(':').map(Number);
-    return minutes >= sh * 60 + sm && minutes < eh * 60 + em;
+    const [sh = 0, sm = 0] = r.start.split(':').map(Number);
+    const [eh = 0, em = 0] = r.end.split(':').map(Number);
+    return minutes >= (sh as number) * 60 + (sm as number) && minutes < (eh as number) * 60 + (em as number);
   });
 }
