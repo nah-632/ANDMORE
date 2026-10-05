@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { routing } from '@/i18n/routing';
+import { locales, type Locale } from '@/i18n/request';
 import {
   fontAmiri,
   fontPlexArabic,
@@ -12,10 +12,10 @@ import {
 import '../globals.css';
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return locales.map((locale) => ({ locale }));
 }
 
-type LocaleProps = { params: Promise<{ locale: string }> };
+type LocaleProps = { params: Promise<{ locale: Locale }> };
 
 export async function generateMetadata(props: LocaleProps): Promise<Metadata> {
   const { locale } = await props.params;
@@ -32,7 +32,7 @@ export default async function LocaleLayout({
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: Locale }>;
 }>) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
