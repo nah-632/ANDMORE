@@ -9,6 +9,9 @@ import type { AppRole } from './roles';
 
 export type AuthUser = { id: string; email: string | undefined };
 
+/** Canonical server client for route handlers (§3B module map name). */
+export const getSupabaseServer = supabaseFromCookies;
+
 function supabaseFromCookies() {
   const cookieStore = await cookies();
   return createServerClient(
