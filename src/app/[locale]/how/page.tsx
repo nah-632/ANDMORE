@@ -1,5 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Reveal } from '@/components/motion/Reveal';
 import { locales, type Locale } from '@/i18n/request';
 

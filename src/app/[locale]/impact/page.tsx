@@ -26,7 +26,6 @@ export default async function ImpactPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ar = locale === 'ar';
-  const t = await getTranslations({ locale, namespace: 'impact' });
 
   const db = svc();
   // Aggregate real data — never fabricate (§2.3). Suppress counts < 5 (§11).
