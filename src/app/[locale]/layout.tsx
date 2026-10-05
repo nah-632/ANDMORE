@@ -15,6 +15,8 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+type LocaleProps = { params: Promise<{ locale: string }> };
+
 export async function generateMetadata(props: LocaleProps): Promise<Metadata> {
   const { locale } = await props.params;
   const t = await getTranslations({ locale, namespace: 'footer' });
