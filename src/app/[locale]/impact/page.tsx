@@ -17,6 +17,9 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export const revalidate = 60;
+// DB-driven: cannot prerender at build (CI has no Supabase env — same lesson as
+// the legal pages). Rendered on-demand with ISR caching.
+export const dynamic = 'force-dynamic';
 
 /**
  * Impact page (§16.8): database-driven real numbers only, small-count
