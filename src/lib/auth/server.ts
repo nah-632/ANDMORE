@@ -9,10 +9,7 @@ import type { AppRole } from './roles';
 
 export type AuthUser = { id: string; email: string | undefined };
 
-/** Canonical server client for route handlers (§3B module map name). */
-export const getSupabaseServer = supabaseFromCookies;
-
-function supabaseFromCookies() {
+async function supabaseFromCookies() {
   const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -49,6 +46,11 @@ export async function getRoles(): Promise<AppRole[]> {
 }
 
 export type Guard<T> = { ok: true; user: T } | { ok: false; status: 401 | 403 };
+
+/** Canonical server client for route handlers (§3B module map name). */
+export function getSupabaseServer() {
+  return supabaseFromCookies();
+}
 
 export async function requireUser(): Promise<Guard<AuthUser>> {
   const user = await getUser();
