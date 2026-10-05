@@ -5,7 +5,7 @@ import type { Locale } from '@/i18n/request';
 
 type Props = { params: Promise<{ locale: Locale }> };
 
-export default function HomePage({ params }: Props) {
+export default async function HomePage({ params }: Props) {
   const { locale } = use(params);
   setRequestLocale(locale);
   const t = useTranslations('home');
