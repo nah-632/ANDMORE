@@ -27,7 +27,9 @@
   },
   "footer": {
     "tagline": "Knowledge becomes giving",
-    "rights": "AND MORE — a volunteer education platform"
+    "rights": "AND MORE — a volunteer education platform",
+    "privacy": "Privacy",
+    "terms": "Terms"
   },
   "langSwitch": {
     "label": "العربية"
@@ -139,5 +141,9 @@
     "submit_failed": "Could not send the report. Try again.",
     "success_title": "We received your report.",
     "success_body": "Thank you for your trust. Our team will review it and reach out if needed."
+  },
+  "content": {
+    "missing": "This page is not available yet.",
+    "legal_review": "This page is a draft pending legal review. It is not a final legal commitment."
   }
 }

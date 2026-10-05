@@ -37,3 +37,25 @@ h1, h2, h3, h4 {
 .hairline {
   border-color: theme('colors.line');
 }
+
+/* Editorial content pages (§5B): restrained markdown styling, no template look. */
+.prose-andmore h2 {
+  @apply mt-10 text-2xl font-bold;
+  font-family: var(--font-heading);
+}
+.prose-andmore h3 {
+  @apply mt-6 text-xl font-bold;
+  font-family: var(--font-heading);
+}
+.prose-andmore p {
+  @apply mt-4 max-w-prose;
+}
+.prose-andmore ul, .prose-andmore ol {
+  @apply mt-4 max-w-prose space-y-2 ps-6;
+}
+.prose-andmore li {
+  @apply list-disc;
+}
+.prose-andmore strong {
+  @apply font-bold text-navy;
+}

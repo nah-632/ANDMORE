@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AND MORE mark">
+  <!--
+    Brand mark: ampersand/plus-derived motif (§5: connection + growth).
+    Hand-drawn feel: slightly rotated cross with a calligraphic tail in gold.
+    Uses only flat brand colors, no gradients (§5B).
+  -->
+  <g fill="none" stroke="#082748" stroke-width="5" stroke-linecap="round">
+    <path d="M32 10 V54"/>
+    <path d="M10 32 H54"/>
+  </g>
+  <path d="M44 44 q8 4 6 12" fill="none" stroke="#D5A66A" stroke-width="5" stroke-linecap="round"/>
+</svg>

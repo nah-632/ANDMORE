@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { locales, type Locale } from '@/i18n/request';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import {
   fontAmiri,
   fontPlexArabic,
@@ -45,7 +47,11 @@ export default async function LocaleLayout({
       <body
         className={`${fontAmiri.variable} ${fontPlexArabic.variable} ${fontSourceSerif.variable} ${fontSourceSans.variable} min-h-dvh antialiased`}
       >
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <SiteHeader locale={locale} />
+          {children}
+          <SiteFooter locale={locale} />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

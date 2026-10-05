@@ -22,7 +22,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^3.25.76",
-    "@supabase/ssr": "^0.7.0"
+    "@supabase/ssr": "^0.7.0",
+    "marked": "^15.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
