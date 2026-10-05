@@ -15,7 +15,7 @@ if (!existsSync(nm)) {
   process.exit(0);
 }
 
-const keyPkgs = ['next', 'react', '@supabase/supabase-js', 'next-intl', 'zod', 'typescript'];
+const keyPkgs = ['next', 'react', '@supabase/supabase-js', '@supabase/ssr', 'next-intl', 'zod', 'typescript'];
 let missing = 0;
 for (const p of keyPkgs) {
   if (!existsSync(join(nm, p))) {
