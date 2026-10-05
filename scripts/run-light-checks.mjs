@@ -20,6 +20,13 @@ const checks = [
 ];
 
 let failed = false;
+
+// SQL migration hygiene (validate-sql.py, zero-dep python)
+{
+  const r = spawnSync('python3', [join(here, 'validate-sql.py')], { stdio: 'inherit' });
+  if (r.status !== 0) { console.error('[verify:light] FAILED: validate-sql.py'); failed = true; }
+}
+
 for (const check of checks) {
   const path = join(here, check);
   if (!existsSync(path)) {
